@@ -1,0 +1,6 @@
+@team_flow_api_HostAddress = http://localhost:5096
+
+GET {{team_flow_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
