@@ -44,7 +44,7 @@ internal sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             .HasFilter("deleted_at IS NULL")
             .HasDatabaseName("ix_tasks_board");
         b.HasIndex(x => x.AssigneeId)
-            .HasFilter("deleted_at IS NULL AND column <> 'done'")
+            .HasFilter("deleted_at IS NULL AND \"column\" <> 'done'")
             .HasDatabaseName("ix_tasks_assignee_open");
         b.HasIndex(x => new { x.WorkspaceId, x.DueDate }).HasFilter("deleted_at IS NULL");
 
