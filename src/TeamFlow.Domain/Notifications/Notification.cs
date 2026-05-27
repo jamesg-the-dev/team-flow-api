@@ -99,3 +99,23 @@ public interface INotificationRepository : IRepository<Notification>
     Task<int> CountUnreadAsync(Guid recipientId, CancellationToken ct = default);
     void Add(Notification notification);
 }
+
+public interface INotificationPreferenceRepository
+{
+    /// <summary>All preferences for a single user across every workspace they belong to.</summary>
+    Task<IReadOnlyList<NotificationPreference>> ListForUserAsync(
+        Guid userId,
+        CancellationToken ct = default
+    );
+
+    /// <summary>Preferences for a user inside a specific workspace.</summary>
+    Task<IReadOnlyList<NotificationPreference>> ListForUserAsync(
+        Guid userId,
+        Guid workspaceId,
+        CancellationToken ct = default
+    );
+
+    void Add(NotificationPreference preference);
+    void Remove(NotificationPreference preference);
+    void RemoveRange(IEnumerable<NotificationPreference> preferences);
+}

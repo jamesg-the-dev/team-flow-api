@@ -146,6 +146,39 @@ internal sealed class NotificationRepository : INotificationRepository
     public void Add(Notification notification) => _ctx.Notifications.Add(notification);
 }
 
+internal sealed class NotificationPreferenceRepository : INotificationPreferenceRepository
+{
+    private readonly TeamFlowDbContext _ctx;
+
+    public NotificationPreferenceRepository(TeamFlowDbContext ctx) => _ctx = ctx;
+
+    public async Task<IReadOnlyList<NotificationPreference>> ListForUserAsync(
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        await _ctx.NotificationPreferences.Where(p => p.UserId == userId).ToListAsync(ct);
+
+    public async Task<IReadOnlyList<NotificationPreference>> ListForUserAsync(
+        Guid userId,
+        Guid workspaceId,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .NotificationPreferences.Where(p =>
+                p.UserId == userId && p.WorkspaceId == workspaceId
+            )
+            .ToListAsync(ct);
+
+    public void Add(NotificationPreference preference) =>
+        _ctx.NotificationPreferences.Add(preference);
+
+    public void Remove(NotificationPreference preference) =>
+        _ctx.NotificationPreferences.Remove(preference);
+
+    public void RemoveRange(IEnumerable<NotificationPreference> preferences) =>
+        _ctx.NotificationPreferences.RemoveRange(preferences);
+}
+
 internal sealed class ActivityEventRepository : IActivityEventRepository
 {
     private readonly TeamFlowDbContext _ctx;

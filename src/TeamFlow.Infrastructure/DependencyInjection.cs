@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Abstractions;
+using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
 using TeamFlow.Application.Features.Tasks.Queries.GetProjectBoard;
 using TeamFlow.Domain.Activity;
@@ -68,11 +69,13 @@ public static class DependencyInjection
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IAttachmentRepository, AttachmentRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
         services.AddScoped<IActivityEventRepository, ActivityEventRepository>();
 
         // Read-side query services (CQRS Q-side)
         services.AddScoped<IListProjectsQueryService, ListProjectsQueryService>();
         services.AddScoped<IGetProjectBoardQueryService, GetProjectBoardQueryService>();
+        services.AddScoped<IListMyWorkspacesQueryService, ListMyWorkspacesQueryService>();
 
         return services;
     }

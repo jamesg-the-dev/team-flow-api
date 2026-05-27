@@ -9,6 +9,14 @@ public interface ICurrentUser
     Guid? UserId { get; }
     bool IsAuthenticated { get; }
     Guid RequireUserId();
+
+    /// <summary>Email claim from the Supabase access token (may be null for some OAuth flows).</summary>
+    string? Email { get; }
+    bool EmailVerified { get; }
+
+    /// <summary>Convenience reads over <c>user_metadata</c> populated by Supabase.</summary>
+    string? FullName { get; }
+    string? AvatarUrl { get; }
 }
 
 public interface IDateTimeProvider

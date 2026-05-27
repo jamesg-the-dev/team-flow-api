@@ -25,6 +25,16 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
     public Task<bool> SlugExistsAsync(string slug, CancellationToken ct = default) =>
         _ctx.Workspaces.AnyAsync(w => w.Slug == slug.ToLower(), ct);
 
+    public async Task<IReadOnlyList<Guid>> ListIdsForUserAsync(
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .WorkspaceMembers.AsNoTracking()
+            .Where(m => m.UserId == userId)
+            .Select(m => m.WorkspaceId)
+            .ToListAsync(ct);
+
     public void Add(Workspace workspace) => _ctx.Workspaces.Add(workspace);
 
     public void Remove(Workspace workspace) => _ctx.Workspaces.Remove(workspace);

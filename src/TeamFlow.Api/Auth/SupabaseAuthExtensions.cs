@@ -92,4 +92,33 @@ internal sealed class HttpContextCurrentUser : ICurrentUser
     public Guid RequireUserId() =>
         UserId
         ?? throw new UnauthorizedAccessException("No authenticated Supabase user on the request.");
+
+    public string? Email => Claim("email");
+
+    public bool EmailVerified =>
+        bool.TryParse(Claim("email_verified"), out var v) && v;
+
+    public string? FullName => MetadataString("full_name") ?? MetadataString("name");
+
+    public string? AvatarUrl => MetadataString("avatar_url") ?? MetadataString("picture");
+
+    private string? Claim(string type) => _accessor.HttpContext?.User?.FindFirst(type)?.Value;
+
+    private string? MetadataString(string key)
+    {
+        var raw = Claim("user_metadata");
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(raw);
+            return doc.RootElement.TryGetProperty(key, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String
+                ? v.GetString()
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
