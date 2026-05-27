@@ -35,6 +35,14 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
             .Select(m => m.WorkspaceId)
             .ToListAsync(ct);
 
+    public Task<bool> IsMemberAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        _ctx.WorkspaceMembers.AsNoTracking()
+            .AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId, ct);
+
     public void Add(Workspace workspace) => _ctx.Workspaces.Add(workspace);
 
     public void Remove(Workspace workspace) => _ctx.Workspaces.Remove(workspace);
