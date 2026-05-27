@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>TeamFlow.Domain</RootNamespace>
+    <AssemblyName>TeamFlow.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>
