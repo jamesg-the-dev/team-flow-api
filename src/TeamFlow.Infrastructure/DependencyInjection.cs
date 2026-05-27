@@ -5,6 +5,8 @@ using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
 using TeamFlow.Application.Features.Tasks.Queries.GetProjectBoard;
+using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceInvites;
+using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceMembers;
 using TeamFlow.Domain.Activity;
 using TeamFlow.Domain.Attachments;
 using TeamFlow.Domain.Discussions;
@@ -76,6 +78,8 @@ public static class DependencyInjection
         services.AddScoped<IListProjectsQueryService, ListProjectsQueryService>();
         services.AddScoped<IGetProjectBoardQueryService, GetProjectBoardQueryService>();
         services.AddScoped<IListMyWorkspacesQueryService, ListMyWorkspacesQueryService>();
+        services.AddScoped<IListWorkspaceMembersQueryService, ListWorkspaceMembersQueryService>();
+        services.AddScoped<IListWorkspaceInvitesQueryService, ListWorkspaceInvitesQueryService>();
 
         return services;
     }

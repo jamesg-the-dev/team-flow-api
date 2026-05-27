@@ -19,6 +19,12 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
     public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _ctx.Workspaces.Include(w => w.Members).FirstOrDefaultAsync(w => w.Id == id, ct);
 
+    public Task<Workspace?> GetByIdWithInvitesAsync(Guid id, CancellationToken ct = default) =>
+        _ctx
+            .Workspaces.Include(w => w.Members)
+            .Include(w => w.Invites)
+            .FirstOrDefaultAsync(w => w.Id == id, ct);
+
     public Task<Workspace?> GetBySlugAsync(string slug, CancellationToken ct = default) =>
         _ctx.Workspaces.FirstOrDefaultAsync(w => w.Slug == slug.ToLower(), ct);
 
@@ -42,6 +48,15 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
     ) =>
         _ctx.WorkspaceMembers.AsNoTracking()
             .AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId, ct);
+
+    public Task<Workspace?> GetByInviteTokenHashAsync(
+        string tokenHash,
+        CancellationToken ct = default
+    ) =>
+        _ctx
+            .Workspaces.Include(w => w.Invites)
+            .Include(w => w.Members)
+            .FirstOrDefaultAsync(w => w.Invites.Any(i => i.TokenHash == tokenHash), ct);
 
     public void Add(Workspace workspace) => _ctx.Workspaces.Add(workspace);
 

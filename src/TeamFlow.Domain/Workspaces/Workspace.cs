@@ -111,6 +111,14 @@ public sealed class Workspace : AuditableAggregateRoot, ISoftDeletable
         member.ChangeRole(role);
     }
 
+    public void ChangeMemberTitle(Guid userId, string? title)
+    {
+        var member =
+            _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw DomainException.NotFound(nameof(WorkspaceMember), userId);
+        member.Title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
+    }
+
     public void TransferOwnership(Guid newOwnerId)
     {
         var newOwner =
@@ -141,6 +149,43 @@ public sealed class Workspace : AuditableAggregateRoot, ISoftDeletable
         _invites.Add(invite);
         Raise(new WorkspaceInviteIssued(Id, invite.Id, email));
         return invite;
+    }
+
+    public void RevokeInvite(Guid inviteId)
+    {
+        var invite =
+            _invites.FirstOrDefault(i => i.Id == inviteId)
+            ?? throw DomainException.NotFound(nameof(WorkspaceInvite), inviteId);
+        if (invite.AcceptedAt is not null)
+            throw DomainException.Invariant("Cannot revoke an invite that was already accepted.");
+        _invites.Remove(invite);
+    }
+
+    /// <summary>
+    /// Accepts a pending invite identified by id. Verifies the invite's email matches the
+    /// accepting user. If the user is already a member the invite is still marked accepted.
+    /// Returns <c>true</c> if a new membership row was created, <c>false</c> if already a member.
+    /// </summary>
+    public bool AcceptInvite(Guid inviteId, Guid acceptingUserId, string acceptingUserEmail, DateTimeOffset now)
+    {
+        var invite =
+            _invites.FirstOrDefault(i => i.Id == inviteId)
+            ?? throw DomainException.NotFound(nameof(WorkspaceInvite), inviteId);
+        if (
+            !invite.Email.Equals(
+                acceptingUserEmail?.Trim(),
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+            throw DomainException.Invariant("This invite was issued to a different email address.");
+
+        invite.Accept(now);
+
+        if (_members.Any(m => m.UserId == acceptingUserId))
+            return false;
+
+        AddMember(acceptingUserId, invite.Role, invitedBy: invite.InvitedBy);
+        return true;
     }
 
     public Tag CreateTag(string name, string colorHex = "#94A3B8")
