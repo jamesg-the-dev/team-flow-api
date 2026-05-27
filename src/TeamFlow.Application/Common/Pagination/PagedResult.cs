@@ -5,12 +5,13 @@ public sealed record PaginationRequest(int Page = 1, int PageSize = 25)
     public const int MaxPageSize = 200;
 
     public int SafePage => Page <= 0 ? 1 : Page;
-    public int SafePageSize => PageSize switch
-    {
-        <= 0 => 25,
-        > MaxPageSize => MaxPageSize,
-        _ => PageSize
-    };
+    public int SafePageSize =>
+        PageSize switch
+        {
+            <= 0 => 25,
+            > MaxPageSize => MaxPageSize,
+            _ => PageSize,
+        };
     public int Skip => (SafePage - 1) * SafePageSize;
 }
 

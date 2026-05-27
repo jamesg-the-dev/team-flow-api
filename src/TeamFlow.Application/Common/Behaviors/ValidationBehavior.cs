@@ -13,11 +13,17 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators) => _validators = validators;
+    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators) =>
+        _validators = validators;
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct
+    )
     {
-        if (!_validators.Any()) return await next();
+        if (!_validators.Any())
+            return await next();
 
         var context = new ValidationContext<TRequest>(request);
         var failures = (await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context, ct))))
@@ -25,9 +31,13 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
             .Where(e => e is not null)
             .ToList();
 
-        if (failures.Count == 0) return await next();
+        if (failures.Count == 0)
+            return await next();
 
-        var message = string.Join("; ", failures.Select(f => $"{f.PropertyName}: {f.ErrorMessage}"));
+        var message = string.Join(
+            "; ",
+            failures.Select(f => $"{f.PropertyName}: {f.ErrorMessage}")
+        );
         var error = Error.Validation(message);
 
         // If TResponse is Result or Result<T>, return failure result; otherwise throw.
@@ -37,7 +47,8 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
                 return (TResponse)(object)Result.Failure(error);
 
             var inner = typeof(TResponse).GetGenericArguments()[0];
-            var failureMethod = typeof(Result).GetMethod(nameof(Result.Failure), 1, new[] { typeof(Error) })!
+            var failureMethod = typeof(Result)
+                .GetMethod(nameof(Result.Failure), 1, new[] { typeof(Error) })!
                 .MakeGenericMethod(inner);
             return (TResponse)failureMethod.Invoke(null, new object[] { error })!;
         }

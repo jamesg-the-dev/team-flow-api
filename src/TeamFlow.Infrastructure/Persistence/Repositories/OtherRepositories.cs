@@ -11,67 +11,132 @@ namespace TeamFlow.Infrastructure.Persistence.Repositories;
 internal sealed class ChannelRepository : IChannelRepository
 {
     private readonly TeamFlowDbContext _ctx;
-    public ChannelRepository(TeamFlowDbContext ctx, IUnitOfWork uow) { _ctx = ctx; UnitOfWork = uow; }
+
+    public ChannelRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
     public IUnitOfWork UnitOfWork { get; }
+
     public Task<Channel?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _ctx.Channels.Include(c => c.Members).FirstOrDefaultAsync(c => c.Id == id, ct);
-    public Task<bool> NameExistsAsync(Guid workspaceId, string name, CancellationToken ct = default) =>
-        _ctx.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name == name, ct);
+
+    public Task<bool> NameExistsAsync(
+        Guid workspaceId,
+        string name,
+        CancellationToken ct = default
+    ) => _ctx.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name == name, ct);
+
     public void Add(Channel channel) => _ctx.Channels.Add(channel);
+
     public void Remove(Channel channel) => _ctx.Channels.Remove(channel);
 }
 
 internal sealed class MessageRepository : IMessageRepository
 {
     private readonly TeamFlowDbContext _ctx;
-    public MessageRepository(TeamFlowDbContext ctx, IUnitOfWork uow) { _ctx = ctx; UnitOfWork = uow; }
+
+    public MessageRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
     public IUnitOfWork UnitOfWork { get; }
 
     public Task<Message?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        _ctx.Messages.Include(m => m.Reactions).Include(m => m.Mentions)
+        _ctx
+            .Messages.Include(m => m.Reactions)
+            .Include(m => m.Mentions)
             .FirstOrDefaultAsync(m => m.Id == id, ct);
 
-    public async Task<IReadOnlyList<Message>> GetChannelTimelineAsync(Guid channelId, DateTimeOffset? before, int take, CancellationToken ct = default) =>
-        await _ctx.Messages
-            .Where(m => m.ChannelId == channelId && m.ParentId == null
-                        && (before == null || m.CreatedAt < before))
+    public async Task<IReadOnlyList<Message>> GetChannelTimelineAsync(
+        Guid channelId,
+        DateTimeOffset? before,
+        int take,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .Messages.Where(m =>
+                m.ChannelId == channelId
+                && m.ParentId == null
+                && (before == null || m.CreatedAt < before)
+            )
             .OrderByDescending(m => m.CreatedAt)
             .Take(take)
             .ToListAsync(ct);
 
-    public async Task<IReadOnlyList<Message>> GetThreadAsync(Guid parentId, CancellationToken ct = default) =>
-        await _ctx.Messages.Where(m => m.ParentId == parentId).OrderBy(m => m.CreatedAt).ToListAsync(ct);
+    public async Task<IReadOnlyList<Message>> GetThreadAsync(
+        Guid parentId,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .Messages.Where(m => m.ParentId == parentId)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(ct);
 
     public void Add(Message message) => _ctx.Messages.Add(message);
+
     public void Remove(Message message) => _ctx.Messages.Remove(message);
 }
 
 internal sealed class AttachmentRepository : IAttachmentRepository
 {
     private readonly TeamFlowDbContext _ctx;
-    public AttachmentRepository(TeamFlowDbContext ctx, IUnitOfWork uow) { _ctx = ctx; UnitOfWork = uow; }
+
+    public AttachmentRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
     public IUnitOfWork UnitOfWork { get; }
+
     public Task<Attachment?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _ctx.Attachments.FirstOrDefaultAsync(a => a.Id == id, ct);
-    public async Task<IReadOnlyList<Attachment>> ListForOwnerAsync(AttachmentOwner kind, Guid ownerId, CancellationToken ct = default) =>
-        await _ctx.Attachments.Where(a => a.OwnerKind == kind && a.OwnerId == ownerId).ToListAsync(ct);
+
+    public async Task<IReadOnlyList<Attachment>> ListForOwnerAsync(
+        AttachmentOwner kind,
+        Guid ownerId,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .Attachments.Where(a => a.OwnerKind == kind && a.OwnerId == ownerId)
+            .ToListAsync(ct);
+
     public void Add(Attachment attachment) => _ctx.Attachments.Add(attachment);
+
     public void Remove(Attachment attachment) => _ctx.Attachments.Remove(attachment);
 }
 
 internal sealed class NotificationRepository : INotificationRepository
 {
     private readonly TeamFlowDbContext _ctx;
-    public NotificationRepository(TeamFlowDbContext ctx, IUnitOfWork uow) { _ctx = ctx; UnitOfWork = uow; }
+
+    public NotificationRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
     public IUnitOfWork UnitOfWork { get; }
 
     public Task<Notification?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _ctx.Notifications.FirstOrDefaultAsync(n => n.Id == id, ct);
 
-    public async Task<IReadOnlyList<Notification>> ListInboxAsync(Guid recipientId, bool unreadOnly, int skip, int take, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Notification>> ListInboxAsync(
+        Guid recipientId,
+        bool unreadOnly,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    )
     {
         var q = _ctx.Notifications.Where(n => n.RecipientId == recipientId);
-        if (unreadOnly) q = q.Where(n => n.ReadAt == null);
+        if (unreadOnly)
+            q = q.Where(n => n.ReadAt == null);
         return await q.OrderByDescending(n => n.CreatedAt).Skip(skip).Take(take).ToListAsync(ct);
     }
 
@@ -84,16 +149,40 @@ internal sealed class NotificationRepository : INotificationRepository
 internal sealed class ActivityEventRepository : IActivityEventRepository
 {
     private readonly TeamFlowDbContext _ctx;
-    public ActivityEventRepository(TeamFlowDbContext ctx, IUnitOfWork uow) { _ctx = ctx; UnitOfWork = uow; }
+
+    public ActivityEventRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
     public IUnitOfWork UnitOfWork { get; }
 
-    public async Task<IReadOnlyList<ActivityEvent>> ListForWorkspaceAsync(Guid workspaceId, int skip, int take, CancellationToken ct = default) =>
-        await _ctx.ActivityEvents.Where(e => e.WorkspaceId == workspaceId)
-            .OrderByDescending(e => e.CreatedAt).Skip(skip).Take(take).ToListAsync(ct);
+    public async Task<IReadOnlyList<ActivityEvent>> ListForWorkspaceAsync(
+        Guid workspaceId,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .ActivityEvents.Where(e => e.WorkspaceId == workspaceId)
+            .OrderByDescending(e => e.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
 
-    public async Task<IReadOnlyList<ActivityEvent>> ListForProjectAsync(Guid projectId, int skip, int take, CancellationToken ct = default) =>
-        await _ctx.ActivityEvents.Where(e => e.ProjectId == projectId)
-            .OrderByDescending(e => e.CreatedAt).Skip(skip).Take(take).ToListAsync(ct);
+    public async Task<IReadOnlyList<ActivityEvent>> ListForProjectAsync(
+        Guid projectId,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    ) =>
+        await _ctx
+            .ActivityEvents.Where(e => e.ProjectId == projectId)
+            .OrderByDescending(e => e.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
 
     public void Add(ActivityEvent activityEvent) => _ctx.ActivityEvents.Add(activityEvent);
 }

@@ -19,7 +19,8 @@ public sealed class Money : ValueObject
 
     public static Money From(long amountCents, string currency)
     {
-        if (amountCents < 0) throw DomainException.Invariant("Amount cannot be negative.");
+        if (amountCents < 0)
+            throw DomainException.Invariant("Amount cannot be negative.");
         if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
             throw DomainException.Invariant("Currency must be a 3-letter ISO code.");
         return new Money(amountCents, currency.ToUpperInvariant());

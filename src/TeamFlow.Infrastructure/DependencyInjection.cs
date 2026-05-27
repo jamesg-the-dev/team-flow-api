@@ -22,10 +22,16 @@ namespace TeamFlow.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Missing ConnectionStrings:Default (Supabase Postgres).");
+        var connectionString =
+            configuration.GetConnectionString("Default")
+            ?? throw new InvalidOperationException(
+                "Missing ConnectionStrings:Default (Supabase Postgres)."
+            );
 
         // Shared services
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
@@ -33,18 +39,24 @@ public static class DependencyInjection
         services.AddScoped<AuditingInterceptor>();
         services.AddScoped<DomainEventDispatchInterceptor>();
 
-        services.AddDbContext<TeamFlowDbContext>((sp, options) =>
-        {
-            options.UseNpgsql(connectionString, npg =>
+        services.AddDbContext<TeamFlowDbContext>(
+            (sp, options) =>
             {
-                npg.EnableRetryOnFailure(3);
-                npg.MigrationsHistoryTable("__ef_migrations_history", "public");
-            });
-            options.UseSnakeCaseNamingConvention();
-            options.AddInterceptors(
-                sp.GetRequiredService<AuditingInterceptor>(),
-                sp.GetRequiredService<DomainEventDispatchInterceptor>());
-        });
+                options.UseNpgsql(
+                    connectionString,
+                    npg =>
+                    {
+                        npg.EnableRetryOnFailure(3);
+                        npg.MigrationsHistoryTable("__ef_migrations_history", "public");
+                    }
+                );
+                options.UseSnakeCaseNamingConvention();
+                options.AddInterceptors(
+                    sp.GetRequiredService<AuditingInterceptor>(),
+                    sp.GetRequiredService<DomainEventDispatchInterceptor>()
+                );
+            }
+        );
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

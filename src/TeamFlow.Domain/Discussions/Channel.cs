@@ -23,11 +23,20 @@ public sealed class Channel : AggregateRoot
 
     private Channel() { }
 
-    public static Channel Create(Guid workspaceId, string name, ChannelType type, Guid createdBy, string? topic = null)
+    public static Channel Create(
+        Guid workspaceId,
+        string name,
+        ChannelType type,
+        Guid createdBy,
+        string? topic = null
+    )
     {
-        if (string.IsNullOrWhiteSpace(name)) throw DomainException.Invariant("Channel name required.");
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.Invariant("Channel name required.");
         if (!System.Text.RegularExpressions.Regex.IsMatch(name, "^[a-z0-9][a-z0-9-_]{0,79}$"))
-            throw DomainException.Invariant("Channel name must be lowercase alphanumerics, dashes or underscores.");
+            throw DomainException.Invariant(
+                "Channel name must be lowercase alphanumerics, dashes or underscores."
+            );
 
         var ch = new Channel
         {
@@ -45,7 +54,8 @@ public sealed class Channel : AggregateRoot
 
     public void Rename(string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw DomainException.Invariant("Channel name required.");
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.Invariant("Channel name required.");
         Name = name;
     }
 
@@ -53,13 +63,15 @@ public sealed class Channel : AggregateRoot
 
     public void Archive(DateTimeOffset at)
     {
-        if (ArchivedAt is not null) return;
+        if (ArchivedAt is not null)
+            return;
         ArchivedAt = at;
     }
 
     public ChannelMember Join(Guid userId)
     {
-        if (_members.Any(m => m.UserId == userId)) return _members.First(m => m.UserId == userId);
+        if (_members.Any(m => m.UserId == userId))
+            return _members.First(m => m.UserId == userId);
         var member = new ChannelMember(Id, userId);
         _members.Add(member);
         return member;
@@ -69,8 +81,9 @@ public sealed class Channel : AggregateRoot
 
     public void MarkRead(Guid userId, DateTimeOffset at)
     {
-        var m = _members.FirstOrDefault(m => m.UserId == userId)
-                ?? throw DomainException.Invariant("User is not a member of this channel.");
+        var m =
+            _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw DomainException.Invariant("User is not a member of this channel.");
         m.MarkRead(at);
     }
 }
@@ -95,10 +108,12 @@ public sealed class ChannelMember
 
     internal void MarkRead(DateTimeOffset at)
     {
-        if (at > LastReadAt) LastReadAt = at;
+        if (at > LastReadAt)
+            LastReadAt = at;
     }
 
     public void Mute() => IsMuted = true;
+
     public void Unmute() => IsMuted = false;
 }
 

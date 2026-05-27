@@ -4,7 +4,8 @@ namespace TeamFlow.Domain.SeedWork;
 /// Repository interface marker. The aggregate root is the consistency boundary;
 /// there is exactly one repository per aggregate root.
 /// </summary>
-public interface IRepository<T> where T : class, IAggregateRoot
+public interface IRepository<T>
+    where T : class, IAggregateRoot
 {
     IUnitOfWork UnitOfWork { get; }
 }

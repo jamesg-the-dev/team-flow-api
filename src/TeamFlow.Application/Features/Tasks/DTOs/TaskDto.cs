@@ -17,7 +17,8 @@ public sealed record TaskDto(
     DateOnly? DueDate,
     DateTimeOffset? CompletedAt,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);
 
 public sealed record TaskBoardCardDto(
     Guid Id,
@@ -27,7 +28,8 @@ public sealed record TaskBoardCardDto(
     PriorityLevel Priority,
     decimal Position,
     Guid? AssigneeId,
-    DateOnly? DueDate);
+    DateOnly? DueDate
+);
 
 public sealed record TaskCommentDto(
     Guid Id,
@@ -36,4 +38,5 @@ public sealed record TaskCommentDto(
     Guid? ParentId,
     string Body,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? EditedAt);
+    DateTimeOffset? EditedAt
+);

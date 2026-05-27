@@ -9,7 +9,10 @@ namespace TeamFlow.Domain.Activity;
 /// </summary>
 public sealed class ActivityEvent : IAggregateRoot
 {
-    private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+    };
 
     public long Id { get; private set; }
     public Guid WorkspaceId { get; private set; }
@@ -22,15 +25,26 @@ public sealed class ActivityEvent : IAggregateRoot
     public DateTimeOffset CreatedAt { get; private set; }
 
     public IReadOnlyCollection<IDomainEvent> DomainEvents => Array.Empty<IDomainEvent>();
-    public void ClearDomainEvents() { /* no-op: append-only */ }
+
+    public void ClearDomainEvents() { /* no-op: append-only */
+    }
 
     private ActivityEvent() { }
 
-    public static ActivityEvent Record(Guid workspaceId, string verb, string targetKind, Guid targetId,
-        Guid? actorId = null, Guid? projectId = null, object? metadata = null)
+    public static ActivityEvent Record(
+        Guid workspaceId,
+        string verb,
+        string targetKind,
+        Guid targetId,
+        Guid? actorId = null,
+        Guid? projectId = null,
+        object? metadata = null
+    )
     {
-        if (string.IsNullOrWhiteSpace(verb)) throw DomainException.Invariant("Verb required.");
-        if (string.IsNullOrWhiteSpace(targetKind)) throw DomainException.Invariant("Target kind required.");
+        if (string.IsNullOrWhiteSpace(verb))
+            throw DomainException.Invariant("Verb required.");
+        if (string.IsNullOrWhiteSpace(targetKind))
+            throw DomainException.Invariant("Target kind required.");
         return new ActivityEvent
         {
             WorkspaceId = workspaceId,
@@ -49,7 +63,17 @@ public sealed class ActivityEvent : IAggregateRoot
 
 public interface IActivityEventRepository : IRepository<ActivityEvent>
 {
-    Task<IReadOnlyList<ActivityEvent>> ListForWorkspaceAsync(Guid workspaceId, int skip, int take, CancellationToken ct = default);
-    Task<IReadOnlyList<ActivityEvent>> ListForProjectAsync(Guid projectId, int skip, int take, CancellationToken ct = default);
+    Task<IReadOnlyList<ActivityEvent>> ListForWorkspaceAsync(
+        Guid workspaceId,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    );
+    Task<IReadOnlyList<ActivityEvent>> ListForProjectAsync(
+        Guid projectId,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    );
     void Add(ActivityEvent activityEvent);
 }

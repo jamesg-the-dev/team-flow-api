@@ -21,6 +21,7 @@ namespace TeamFlow.Api.Controllers;
 public sealed class ProjectsController : ControllerBase
 {
     private readonly ISender _sender;
+
     public ProjectsController(ISender sender) => _sender = sender;
 
     [HttpGet]
@@ -31,9 +32,18 @@ public sealed class ProjectsController : ControllerBase
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
     {
-        var result = await _sender.Send(new ListProjectsQuery(workspaceId, status, search, new PaginationRequest(page, pageSize)), ct);
+        var result = await _sender.Send(
+            new ListProjectsQuery(
+                workspaceId,
+                status,
+                search,
+                new PaginationRequest(page, pageSize)
+            ),
+            ct
+        );
         return result.ToActionResult();
     }
 
@@ -50,10 +60,22 @@ public sealed class ProjectsController : ControllerBase
     [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ProjectDto>> Create(Guid workspaceId, [FromBody] CreateProjectRequest body, CancellationToken ct)
+    public async Task<ActionResult<ProjectDto>> Create(
+        Guid workspaceId,
+        [FromBody] CreateProjectRequest body,
+        CancellationToken ct
+    )
     {
-        var cmd = new CreateProjectCommand(workspaceId, body.Key, body.Name, body.Description,
-            body.Priority, body.StartDate, body.DueDate, body.ColorHex);
+        var cmd = new CreateProjectCommand(
+            workspaceId,
+            body.Key,
+            body.Name,
+            body.Description,
+            body.Priority,
+            body.StartDate,
+            body.DueDate,
+            body.ColorHex
+        );
         var result = await _sender.Send(cmd, ct);
         return result.IsSuccess
             ? CreatedAtAction(nameof(Get), new { workspaceId, id = result.Value.Id }, result.Value)
@@ -62,17 +84,32 @@ public sealed class ProjectsController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> Update(Guid id, [FromBody] UpdateProjectRequest body, CancellationToken ct)
+    public async Task<ActionResult> Update(
+        Guid id,
+        [FromBody] UpdateProjectRequest body,
+        CancellationToken ct
+    )
     {
-        var cmd = new UpdateProjectCommand(id, body.Name, body.Description, body.Priority,
-            body.StartDate, body.DueDate, body.ColorHex);
+        var cmd = new UpdateProjectCommand(
+            id,
+            body.Name,
+            body.Description,
+            body.Priority,
+            body.StartDate,
+            body.DueDate,
+            body.ColorHex
+        );
         var result = await _sender.Send(cmd, ct);
         return result.ToActionResult();
     }
 
     [HttpPost("{id:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest body, CancellationToken ct)
+    public async Task<ActionResult> ChangeStatus(
+        Guid id,
+        [FromBody] ChangeStatusRequest body,
+        CancellationToken ct
+    )
     {
         var result = await _sender.Send(new ChangeProjectStatusCommand(id, body.Status), ct);
         return result.ToActionResult();
@@ -80,17 +117,40 @@ public sealed class ProjectsController : ControllerBase
 
     [HttpPost("{id:guid}/members")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> AddMember(Guid id, [FromBody] AddMemberRequest body, CancellationToken ct)
+    public async Task<ActionResult> AddMember(
+        Guid id,
+        [FromBody] AddMemberRequest body,
+        CancellationToken ct
+    )
     {
-        var result = await _sender.Send(new AddProjectMemberCommand(id, body.UserId, body.Role), ct);
+        var result = await _sender.Send(
+            new AddProjectMemberCommand(id, body.UserId, body.Role),
+            ct
+        );
         return result.ToActionResult();
     }
 
     // Request payloads kept local to controller; they map 1:1 to commands.
-    public sealed record CreateProjectRequest(string Key, string Name, string? Description,
-        PriorityLevel Priority, DateOnly? StartDate, DateOnly? DueDate, string? ColorHex);
-    public sealed record UpdateProjectRequest(string Name, string? Description,
-        PriorityLevel Priority, DateOnly? StartDate, DateOnly? DueDate, string? ColorHex);
+    public sealed record CreateProjectRequest(
+        string Key,
+        string Name,
+        string? Description,
+        PriorityLevel Priority,
+        DateOnly? StartDate,
+        DateOnly? DueDate,
+        string? ColorHex
+    );
+
+    public sealed record UpdateProjectRequest(
+        string Name,
+        string? Description,
+        PriorityLevel Priority,
+        DateOnly? StartDate,
+        DateOnly? DueDate,
+        string? ColorHex
+    );
+
     public sealed record ChangeStatusRequest(ProjectStatus Status);
+
     public sealed record AddMemberRequest(Guid UserId, ProjectMemberRole Role);
 }

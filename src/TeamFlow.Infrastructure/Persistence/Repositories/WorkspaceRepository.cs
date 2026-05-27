@@ -7,10 +7,13 @@ namespace TeamFlow.Infrastructure.Persistence.Repositories;
 internal sealed class WorkspaceRepository : IWorkspaceRepository
 {
     private readonly TeamFlowDbContext _ctx;
+
     public WorkspaceRepository(TeamFlowDbContext ctx, IUnitOfWork unitOfWork)
     {
-        _ctx = ctx; UnitOfWork = unitOfWork;
+        _ctx = ctx;
+        UnitOfWork = unitOfWork;
     }
+
     public IUnitOfWork UnitOfWork { get; }
 
     public Task<Workspace?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
@@ -23,5 +26,6 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
         _ctx.Workspaces.AnyAsync(w => w.Slug == slug.ToLower(), ct);
 
     public void Add(Workspace workspace) => _ctx.Workspaces.Add(workspace);
+
     public void Remove(Workspace workspace) => _ctx.Workspaces.Remove(workspace);
 }

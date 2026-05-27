@@ -14,7 +14,7 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
     private readonly List<ProjectTag> _tags = new();
 
     public Guid WorkspaceId { get; private set; }
-    public string Key { get; private set; } = null!;             // PRJ, used as task prefix
+    public string Key { get; private set; } = null!; // PRJ, used as task prefix
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
     public ProjectStatus Status { get; private set; } = ProjectStatus.Planning;
@@ -33,15 +33,28 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
 
     private Project() { }
 
-    public static Project Create(Guid workspaceId, string key, string name, Guid createdBy,
-        string? description = null, PriorityLevel priority = PriorityLevel.Medium,
-        DateOnly? startDate = null, DateOnly? dueDate = null, string? colorHex = null)
+    public static Project Create(
+        Guid workspaceId,
+        string key,
+        string name,
+        Guid createdBy,
+        string? description = null,
+        PriorityLevel priority = PriorityLevel.Medium,
+        DateOnly? startDate = null,
+        DateOnly? dueDate = null,
+        string? colorHex = null
+    )
     {
-        if (workspaceId == Guid.Empty) throw DomainException.Invariant("WorkspaceId is required.");
-        if (string.IsNullOrWhiteSpace(key)) throw DomainException.Invariant("Project key is required.");
+        if (workspaceId == Guid.Empty)
+            throw DomainException.Invariant("WorkspaceId is required.");
+        if (string.IsNullOrWhiteSpace(key))
+            throw DomainException.Invariant("Project key is required.");
         if (!System.Text.RegularExpressions.Regex.IsMatch(key, "^[A-Z][A-Z0-9]{1,9}$"))
-            throw DomainException.Invariant("Project key must be 2-10 uppercase alphanumerics starting with a letter.");
-        if (string.IsNullOrWhiteSpace(name)) throw DomainException.Invariant("Project name is required.");
+            throw DomainException.Invariant(
+                "Project key must be 2-10 uppercase alphanumerics starting with a letter."
+            );
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.Invariant("Project name is required.");
         if (startDate is not null && dueDate is not null && dueDate < startDate)
             throw DomainException.Invariant("Due date cannot precede start date.");
 
@@ -58,15 +71,24 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
             ColorHex = colorHex,
         };
         // Creator is project lead
-        project._members.Add(new ProjectMember(project.Id, createdBy, ProjectMemberRole.Lead, DateTimeOffset.UtcNow));
+        project._members.Add(
+            new ProjectMember(project.Id, createdBy, ProjectMemberRole.Lead, DateTimeOffset.UtcNow)
+        );
         project.Raise(new ProjectCreated(project.Id, workspaceId, key, createdBy));
         return project;
     }
 
-    public void UpdateDetails(string name, string? description, PriorityLevel priority,
-        DateOnly? startDate, DateOnly? dueDate, string? colorHex)
+    public void UpdateDetails(
+        string name,
+        string? description,
+        PriorityLevel priority,
+        DateOnly? startDate,
+        DateOnly? dueDate,
+        string? colorHex
+    )
     {
-        if (string.IsNullOrWhiteSpace(name)) throw DomainException.Invariant("Name required.");
+        if (string.IsNullOrWhiteSpace(name))
+            throw DomainException.Invariant("Name required.");
         if (startDate is not null && dueDate is not null && dueDate < startDate)
             throw DomainException.Invariant("Due date cannot precede start date.");
         Name = name.Trim();
@@ -84,7 +106,8 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
 
     public void ChangeStatus(ProjectStatus next)
     {
-        if (Status == next) return;
+        if (Status == next)
+            return;
         // Forbid transition out of Completed → reopen via dedicated method only.
         if (Status == ProjectStatus.Completed && next != ProjectStatus.Active)
             throw DomainException.Invariant("A completed project can only be reactivated.");
@@ -94,7 +117,8 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
 
     public void Archive()
     {
-        if (Status == ProjectStatus.Archived) return;
+        if (Status == ProjectStatus.Archived)
+            return;
         Status = ProjectStatus.Archived;
         Raise(new ProjectStatusChanged(Id, Status));
     }
@@ -111,15 +135,17 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
 
     public void RemoveMember(Guid userId)
     {
-        var member = _members.FirstOrDefault(m => m.UserId == userId)
-                     ?? throw DomainException.NotFound(nameof(ProjectMember), userId);
+        var member =
+            _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw DomainException.NotFound(nameof(ProjectMember), userId);
         _members.Remove(member);
         Raise(new ProjectMemberRemoved(Id, userId));
     }
 
     public void AddTag(Guid tagId)
     {
-        if (_tags.Any(t => t.TagId == tagId)) return;
+        if (_tags.Any(t => t.TagId == tagId))
+            return;
         _tags.Add(new ProjectTag(Id, tagId));
     }
 

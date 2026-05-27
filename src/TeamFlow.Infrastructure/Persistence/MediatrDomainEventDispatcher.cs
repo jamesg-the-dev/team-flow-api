@@ -11,9 +11,13 @@ namespace TeamFlow.Infrastructure.Persistence;
 internal sealed class MediatrDomainEventDispatcher : IDomainEventDispatcher
 {
     private readonly IPublisher _publisher;
+
     public MediatrDomainEventDispatcher(IPublisher publisher) => _publisher = publisher;
 
-    public async Task DispatchAsync(IEnumerable<IDomainEvent> events, CancellationToken ct = default)
+    public async Task DispatchAsync(
+        IEnumerable<IDomainEvent> events,
+        CancellationToken ct = default
+    )
     {
         foreach (var domainEvent in events)
             await _publisher.Publish(new DomainEventNotification(domainEvent), ct);

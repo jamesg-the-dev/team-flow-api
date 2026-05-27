@@ -21,5 +21,8 @@ public interface IDateTimeProvider
 /// </summary>
 public interface IDomainEventDispatcher
 {
-    Task DispatchAsync(IEnumerable<TeamFlow.Domain.SeedWork.IDomainEvent> events, CancellationToken ct = default);
+    Task DispatchAsync(
+        IEnumerable<TeamFlow.Domain.SeedWork.IDomainEvent> events,
+        CancellationToken ct = default
+    );
 }

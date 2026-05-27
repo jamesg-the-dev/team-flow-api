@@ -8,9 +8,15 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
     where TRequest : notnull
 {
     private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
-    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger) => _logger = logger;
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
+    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger) =>
+        _logger = logger;
+
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct
+    )
     {
         var name = typeof(TRequest).Name;
         var sw = Stopwatch.StartNew();
@@ -19,13 +25,22 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
         {
             var response = await next();
             sw.Stop();
-            _logger.LogInformation("Handled {Request} in {Elapsed} ms", name, sw.ElapsedMilliseconds);
+            _logger.LogInformation(
+                "Handled {Request} in {Elapsed} ms",
+                name,
+                sw.ElapsedMilliseconds
+            );
             return response;
         }
         catch (Exception ex)
         {
             sw.Stop();
-            _logger.LogError(ex, "Failed {Request} after {Elapsed} ms", name, sw.ElapsedMilliseconds);
+            _logger.LogError(
+                ex,
+                "Failed {Request} after {Elapsed} ms",
+                name,
+                sw.ElapsedMilliseconds
+            );
             throw;
         }
     }

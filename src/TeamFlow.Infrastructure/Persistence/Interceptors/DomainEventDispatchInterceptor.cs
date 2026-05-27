@@ -12,20 +12,28 @@ namespace TeamFlow.Infrastructure.Persistence.Interceptors;
 public sealed class DomainEventDispatchInterceptor : SaveChangesInterceptor
 {
     private readonly IDomainEventDispatcher _dispatcher;
-    public DomainEventDispatchInterceptor(IDomainEventDispatcher dispatcher) => _dispatcher = dispatcher;
 
-    public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken ct = default)
+    public DomainEventDispatchInterceptor(IDomainEventDispatcher dispatcher) =>
+        _dispatcher = dispatcher;
+
+    public override async ValueTask<int> SavedChangesAsync(
+        SaveChangesCompletedEventData eventData,
+        int result,
+        CancellationToken ct = default
+    )
     {
-        if (eventData.Context is null) return result;
+        if (eventData.Context is null)
+            return result;
 
-        var aggregates = eventData.Context.ChangeTracker
-            .Entries<IAggregateRoot>()
+        var aggregates = eventData
+            .Context.ChangeTracker.Entries<IAggregateRoot>()
             .Select(e => e.Entity)
             .Where(a => a.DomainEvents.Count > 0)
             .ToList();
 
         var events = aggregates.SelectMany(a => a.DomainEvents).ToList();
-        foreach (var a in aggregates) a.ClearDomainEvents();
+        foreach (var a in aggregates)
+            a.ClearDomainEvents();
 
         if (events.Count > 0)
             await _dispatcher.DispatchAsync(events, ct);

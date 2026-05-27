@@ -6,14 +6,18 @@ public abstract class Entity : IEquatable<Entity>
     public Guid Id { get; protected set; }
 
     protected Entity() { }
+
     protected Entity(Guid id) => Id = id;
 
     public bool Equals(Entity? other) =>
         other is not null && other.GetType() == GetType() && other.Id == Id && Id != Guid.Empty;
 
     public override bool Equals(object? obj) => Equals(obj as Entity);
+
     public override int GetHashCode() => HashCode.Combine(GetType(), Id);
+
     public static bool operator ==(Entity? a, Entity? b) => a?.Equals(b) ?? b is null;
+
     public static bool operator !=(Entity? a, Entity? b) => !(a == b);
 }
 
@@ -24,9 +28,12 @@ public abstract class AggregateRoot : Entity, IAggregateRoot
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     protected AggregateRoot() { }
-    protected AggregateRoot(Guid id) : base(id) { }
+
+    protected AggregateRoot(Guid id)
+        : base(id) { }
 
     protected void Raise(IDomainEvent @event) => _domainEvents.Add(@event);
+
     public void ClearDomainEvents() => _domainEvents.Clear();
 }
 
@@ -53,7 +60,9 @@ public abstract class AuditableAggregateRoot : AggregateRoot, IAuditable
     }
 
     protected AuditableAggregateRoot() { }
-    protected AuditableAggregateRoot(Guid id) : base(id) { }
+
+    protected AuditableAggregateRoot(Guid id)
+        : base(id) { }
 }
 
 public interface IAuditable

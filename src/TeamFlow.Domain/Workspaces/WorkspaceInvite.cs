@@ -16,12 +16,22 @@ public sealed class WorkspaceInvite : Entity
 
     private WorkspaceInvite() { }
 
-    internal WorkspaceInvite(Guid workspaceId, string email, WorkspaceRole role, string tokenHash, Guid invitedBy, DateTimeOffset expiresAt)
+    internal WorkspaceInvite(
+        Guid workspaceId,
+        string email,
+        WorkspaceRole role,
+        string tokenHash,
+        Guid invitedBy,
+        DateTimeOffset expiresAt
+    )
         : base(Guid.CreateVersion7())
     {
-        if (string.IsNullOrWhiteSpace(email)) throw DomainException.Invariant("Email required.");
-        if (string.IsNullOrWhiteSpace(tokenHash)) throw DomainException.Invariant("Token hash required.");
-        if (expiresAt <= DateTimeOffset.UtcNow) throw DomainException.Invariant("Expiry must be in the future.");
+        if (string.IsNullOrWhiteSpace(email))
+            throw DomainException.Invariant("Email required.");
+        if (string.IsNullOrWhiteSpace(tokenHash))
+            throw DomainException.Invariant("Token hash required.");
+        if (expiresAt <= DateTimeOffset.UtcNow)
+            throw DomainException.Invariant("Expiry must be in the future.");
         WorkspaceId = workspaceId;
         Email = email.Trim().ToLowerInvariant();
         Role = role;
@@ -33,8 +43,10 @@ public sealed class WorkspaceInvite : Entity
 
     public void Accept(DateTimeOffset at)
     {
-        if (AcceptedAt is not null) throw DomainException.Invariant("Invite already accepted.");
-        if (at > ExpiresAt) throw DomainException.Invariant("Invite has expired.");
+        if (AcceptedAt is not null)
+            throw DomainException.Invariant("Invite already accepted.");
+        if (at > ExpiresAt)
+            throw DomainException.Invariant("Invite has expired.");
         AcceptedAt = at;
     }
 }

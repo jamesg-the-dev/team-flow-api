@@ -19,7 +19,10 @@ public sealed class AuditingInterceptor : SaveChangesInterceptor
     }
 
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-        DbContextEventData eventData, InterceptionResult<int> result, CancellationToken ct = default)
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken ct = default
+    )
     {
         if (eventData.Context is not null)
             Stamp(eventData.Context);
@@ -35,8 +38,12 @@ public sealed class AuditingInterceptor : SaveChangesInterceptor
         {
             switch (e.State)
             {
-                case EntityState.Added: e.Entity.SetCreated(now, userId); break;
-                case EntityState.Modified: e.Entity.SetUpdated(now, userId); break;
+                case EntityState.Added:
+                    e.Entity.SetCreated(now, userId);
+                    break;
+                case EntityState.Modified:
+                    e.Entity.SetUpdated(now, userId);
+                    break;
             }
         }
     }

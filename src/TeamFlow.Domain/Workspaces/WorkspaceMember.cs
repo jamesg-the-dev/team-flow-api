@@ -15,7 +15,13 @@ public sealed class WorkspaceMember
 
     private WorkspaceMember() { }
 
-    internal WorkspaceMember(Guid workspaceId, Guid userId, WorkspaceRole role, DateTimeOffset joinedAt, Guid? invitedBy)
+    internal WorkspaceMember(
+        Guid workspaceId,
+        Guid userId,
+        WorkspaceRole role,
+        DateTimeOffset joinedAt,
+        Guid? invitedBy
+    )
     {
         WorkspaceId = workspaceId;
         UserId = userId;

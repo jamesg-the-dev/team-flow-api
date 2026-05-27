@@ -19,10 +19,20 @@ public sealed class Notification : AggregateRoot
 
     private Notification() { }
 
-    public static Notification Create(Guid workspaceId, Guid recipientId, NotificationKind kind, string title,
-        Guid? actorId = null, string? body = null, string? targetKind = null, Guid? targetId = null, string? url = null)
+    public static Notification Create(
+        Guid workspaceId,
+        Guid recipientId,
+        NotificationKind kind,
+        string title,
+        Guid? actorId = null,
+        string? body = null,
+        string? targetKind = null,
+        Guid? targetId = null,
+        string? url = null
+    )
     {
-        if (string.IsNullOrWhiteSpace(title)) throw DomainException.Invariant("Title required.");
+        if (string.IsNullOrWhiteSpace(title))
+            throw DomainException.Invariant("Title required.");
         return new Notification
         {
             Id = Guid.CreateVersion7(),
@@ -41,7 +51,8 @@ public sealed class Notification : AggregateRoot
 
     public void MarkRead(DateTimeOffset at)
     {
-        if (ReadAt is null) ReadAt = at;
+        if (ReadAt is null)
+            ReadAt = at;
     }
 }
 
@@ -55,19 +66,36 @@ public sealed class NotificationPreference
 
     private NotificationPreference() { }
 
-    public NotificationPreference(Guid userId, Guid workspaceId, NotificationKind kind, DeliveryChannel channel, bool enabled = true)
+    public NotificationPreference(
+        Guid userId,
+        Guid workspaceId,
+        NotificationKind kind,
+        DeliveryChannel channel,
+        bool enabled = true
+    )
     {
-        UserId = userId; WorkspaceId = workspaceId; Kind = kind; Channel = channel; Enabled = enabled;
+        UserId = userId;
+        WorkspaceId = workspaceId;
+        Kind = kind;
+        Channel = channel;
+        Enabled = enabled;
     }
 
     public void Enable() => Enabled = true;
+
     public void Disable() => Enabled = false;
 }
 
 public interface INotificationRepository : IRepository<Notification>
 {
     Task<Notification?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<IReadOnlyList<Notification>> ListInboxAsync(Guid recipientId, bool unreadOnly, int skip, int take, CancellationToken ct = default);
+    Task<IReadOnlyList<Notification>> ListInboxAsync(
+        Guid recipientId,
+        bool unreadOnly,
+        int skip,
+        int take,
+        CancellationToken ct = default
+    );
     Task<int> CountUnreadAsync(Guid recipientId, CancellationToken ct = default);
     void Add(Notification notification);
 }

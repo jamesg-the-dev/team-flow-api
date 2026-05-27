@@ -14,9 +14,14 @@ public static class SupabaseAuthExtensions
     /// Supabase signs tokens with HS256 using the project's JWT secret. The `sub` claim
     /// carries the Supabase user id (uuid).
     /// </summary>
-    public static IServiceCollection AddSupabaseAuth(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddSupabaseAuth(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
-        services.Configure<SupabaseAuthOptions>(configuration.GetSection(SupabaseAuthOptions.SectionName));
+        services.Configure<SupabaseAuthOptions>(
+            configuration.GetSection(SupabaseAuthOptions.SectionName)
+        );
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
@@ -25,8 +30,11 @@ public static class SupabaseAuthExtensions
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                var opts = configuration.GetSection(SupabaseAuthOptions.SectionName).Get<SupabaseAuthOptions>()
-                           ?? throw new InvalidOperationException("Missing Supabase configuration.");
+                var opts =
+                    configuration
+                        .GetSection(SupabaseAuthOptions.SectionName)
+                        .Get<SupabaseAuthOptions>()
+                    ?? throw new InvalidOperationException("Missing Supabase configuration.");
                 if (string.IsNullOrWhiteSpace(opts.JwtSecret))
                     throw new InvalidOperationException("Supabase:JwtSecret is required.");
 
@@ -34,12 +42,16 @@ public static class SupabaseAuthExtensions
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = !string.IsNullOrWhiteSpace(opts.Url),
-                    ValidIssuer = string.IsNullOrWhiteSpace(opts.Url) ? null : $"{opts.Url.TrimEnd('/')}/auth/v1",
+                    ValidIssuer = string.IsNullOrWhiteSpace(opts.Url)
+                        ? null
+                        : $"{opts.Url.TrimEnd('/')}/auth/v1",
                     ValidateAudience = true,
                     ValidAudience = opts.Audience,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(opts.JwtSecret)),
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(opts.JwtSecret)
+                    ),
                     NameClaimType = "sub",
                     RoleClaimType = "role",
                     ClockSkew = TimeSpan.FromSeconds(30),
@@ -61,6 +73,7 @@ public static class SupabaseAuthExtensions
 internal sealed class HttpContextCurrentUser : ICurrentUser
 {
     private readonly IHttpContextAccessor _accessor;
+
     public HttpContextCurrentUser(IHttpContextAccessor accessor) => _accessor = accessor;
 
     public bool IsAuthenticated => _accessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
@@ -69,12 +82,14 @@ internal sealed class HttpContextCurrentUser : ICurrentUser
     {
         get
         {
-            var sub = _accessor.HttpContext?.User?.FindFirst("sub")?.Value
-                      ?? _accessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var sub =
+                _accessor.HttpContext?.User?.FindFirst("sub")?.Value
+                ?? _accessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return Guid.TryParse(sub, out var id) ? id : null;
         }
     }
 
     public Guid RequireUserId() =>
-        UserId ?? throw new UnauthorizedAccessException("No authenticated Supabase user on the request.");
+        UserId
+        ?? throw new UnauthorizedAccessException("No authenticated Supabase user on the request.");
 }

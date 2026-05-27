@@ -14,9 +14,13 @@ public sealed class ExceptionHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger
+    )
     {
-        _next = next; _logger = logger;
+        _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext ctx)
@@ -37,12 +41,24 @@ public sealed class ExceptionHandlingMiddleware
         {
             DomainException de => (StatusCodes.Status409Conflict, de.Message, de.Code),
             ValidationException ve => (StatusCodes.Status400BadRequest, ve.Message, "validation"),
-            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized", "unauthorized"),
-            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", "unexpected"),
+            UnauthorizedAccessException => (
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "unauthorized"
+            ),
+            _ => (
+                StatusCodes.Status500InternalServerError,
+                "An unexpected error occurred.",
+                "unexpected"
+            ),
         };
 
         if (status >= 500)
-            _logger.LogError(ex, "Unhandled exception while processing request {Path}", ctx.Request.Path);
+            _logger.LogError(
+                ex,
+                "Unhandled exception while processing request {Path}",
+                ctx.Request.Path
+            );
         else
             _logger.LogInformation(ex, "Request failed: {Code}", code);
 
@@ -68,7 +84,10 @@ public static class ResultExtensions
     public static IResult ToHttpResult(this Result result) =>
         result.IsSuccess ? Results.NoContent() : Problem(result.Error);
 
-    public static IResult ToHttpResult<T>(this Result<T> result, Func<T, IResult>? onSuccess = null) =>
+    public static IResult ToHttpResult<T>(
+        this Result<T> result,
+        Func<T, IResult>? onSuccess = null
+    ) =>
         result.IsSuccess
             ? (onSuccess?.Invoke(result.Value) ?? Results.Ok(result.Value))
             : Problem(result.Error);
@@ -82,9 +101,12 @@ public static class ResultExtensions
     private static IResult Problem(Error error)
     {
         var status = StatusFromError(error);
-        return Results.Problem(title: error.Message, statusCode: status,
+        return Results.Problem(
+            title: error.Message,
+            statusCode: status,
             type: $"https://teamflow.app/problems/{error.Code}",
-            extensions: new Dictionary<string, object?> { ["code"] = error.Code });
+            extensions: new Dictionary<string, object?> { ["code"] = error.Code }
+        );
     }
 
     private static ObjectResult ProblemAction(Error error)
@@ -92,20 +114,26 @@ public static class ResultExtensions
         var status = StatusFromError(error);
         var pd = new ProblemDetails
         {
-            Status = status, Title = error.Message,
+            Status = status,
+            Title = error.Message,
             Type = $"https://teamflow.app/problems/{error.Code}",
         };
         pd.Extensions["code"] = error.Code;
-        return new ObjectResult(pd) { StatusCode = status, ContentTypes = { "application/problem+json" } };
+        return new ObjectResult(pd)
+        {
+            StatusCode = status,
+            ContentTypes = { "application/problem+json" },
+        };
     }
 
-    private static int StatusFromError(Error error) => error.Type switch
-    {
-        ErrorType.Validation => StatusCodes.Status400BadRequest,
-        ErrorType.NotFound => StatusCodes.Status404NotFound,
-        ErrorType.Conflict => StatusCodes.Status409Conflict,
-        ErrorType.Forbidden => StatusCodes.Status403Forbidden,
-        ErrorType.Unexpected => StatusCodes.Status500InternalServerError,
-        _ => StatusCodes.Status400BadRequest,
-    };
+    private static int StatusFromError(Error error) =>
+        error.Type switch
+        {
+            ErrorType.Validation => StatusCodes.Status400BadRequest,
+            ErrorType.NotFound => StatusCodes.Status404NotFound,
+            ErrorType.Conflict => StatusCodes.Status409Conflict,
+            ErrorType.Forbidden => StatusCodes.Status403Forbidden,
+            ErrorType.Unexpected => StatusCodes.Status500InternalServerError,
+            _ => StatusCodes.Status400BadRequest,
+        };
 }

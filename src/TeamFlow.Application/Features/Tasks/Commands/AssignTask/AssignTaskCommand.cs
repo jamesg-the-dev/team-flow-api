@@ -15,12 +15,14 @@ public sealed class AssignTaskValidator : AbstractValidator<AssignTaskCommand>
 internal sealed class AssignTaskHandler : ICommandHandler<AssignTaskCommand>
 {
     private readonly ITaskRepository _tasks;
+
     public AssignTaskHandler(ITaskRepository tasks) => _tasks = tasks;
 
     public async Task<Result> Handle(AssignTaskCommand request, CancellationToken ct)
     {
         var task = await _tasks.GetByIdAsync(request.TaskId, ct);
-        if (task is null) return Error.NotFound($"Task '{request.TaskId}' not found.");
+        if (task is null)
+            return Error.NotFound($"Task '{request.TaskId}' not found.");
         task.Assign(request.AssigneeId);
         return Result.Success();
     }

@@ -12,9 +12,14 @@ public sealed class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<
     where TRequest : notnull
 {
     private readonly IUnitOfWork _unitOfWork;
+
     public UnitOfWorkBehavior(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct
+    )
     {
         var response = await next();
 

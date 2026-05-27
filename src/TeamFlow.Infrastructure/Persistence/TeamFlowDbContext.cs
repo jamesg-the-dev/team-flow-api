@@ -12,7 +12,8 @@ namespace TeamFlow.Infrastructure.Persistence;
 
 public sealed class TeamFlowDbContext : DbContext
 {
-    public TeamFlowDbContext(DbContextOptions<TeamFlowDbContext> options) : base(options) { }
+    public TeamFlowDbContext(DbContextOptions<TeamFlowDbContext> options)
+        : base(options) { }
 
     // Workspaces
     public DbSet<Workspace> Workspaces => Set<Workspace>();
@@ -52,7 +53,10 @@ public sealed class TeamFlowDbContext : DbContext
         // Map domain enums to Postgres enum types (one-time DDL handled in migrations).
         modelBuilder.HasPostgresEnum<Domain.Enums.WorkspaceRole>("public", "workspace_role");
         modelBuilder.HasPostgresEnum<Domain.Enums.ProjectStatus>("public", "project_status");
-        modelBuilder.HasPostgresEnum<Domain.Enums.ProjectMemberRole>("public", "project_member_role");
+        modelBuilder.HasPostgresEnum<Domain.Enums.ProjectMemberRole>(
+            "public",
+            "project_member_role"
+        );
         modelBuilder.HasPostgresEnum<Domain.Enums.PriorityLevel>("public", "priority_level");
         modelBuilder.HasPostgresEnum<Domain.Enums.TaskColumn>("public", "task_column");
         modelBuilder.HasPostgresEnum<Domain.Enums.ChannelType>("public", "channel_type");

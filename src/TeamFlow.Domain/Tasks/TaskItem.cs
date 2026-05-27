@@ -38,14 +38,28 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
 
     private TaskItem() { }
 
-    public static TaskItem Create(Guid workspaceId, Guid projectId, int number, string title, Guid reporterId,
-        decimal position, string? description = null, PriorityLevel priority = PriorityLevel.Medium,
-        Guid? assigneeId = null, decimal? estimateHours = null, DateOnly? dueDate = null)
+    public static TaskItem Create(
+        Guid workspaceId,
+        Guid projectId,
+        int number,
+        string title,
+        Guid reporterId,
+        decimal position,
+        string? description = null,
+        PriorityLevel priority = PriorityLevel.Medium,
+        Guid? assigneeId = null,
+        decimal? estimateHours = null,
+        DateOnly? dueDate = null
+    )
     {
-        if (string.IsNullOrWhiteSpace(title)) throw DomainException.Invariant("Title is required.");
-        if (title.Length > 300) throw DomainException.Invariant("Title cannot exceed 300 characters.");
-        if (number <= 0) throw DomainException.Invariant("Task number must be positive.");
-        if (estimateHours is < 0) throw DomainException.Invariant("Estimate cannot be negative.");
+        if (string.IsNullOrWhiteSpace(title))
+            throw DomainException.Invariant("Title is required.");
+        if (title.Length > 300)
+            throw DomainException.Invariant("Title cannot exceed 300 characters.");
+        if (number <= 0)
+            throw DomainException.Invariant("Task number must be positive.");
+        if (estimateHours is < 0)
+            throw DomainException.Invariant("Estimate cannot be negative.");
 
         var task = new TaskItem
         {
@@ -66,11 +80,18 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
         return task;
     }
 
-    public void UpdateDetails(string title, string? description, PriorityLevel priority,
-        decimal? estimateHours, DateOnly? dueDate)
+    public void UpdateDetails(
+        string title,
+        string? description,
+        PriorityLevel priority,
+        decimal? estimateHours,
+        DateOnly? dueDate
+    )
     {
-        if (string.IsNullOrWhiteSpace(title)) throw DomainException.Invariant("Title is required.");
-        if (estimateHours is < 0) throw DomainException.Invariant("Estimate cannot be negative.");
+        if (string.IsNullOrWhiteSpace(title))
+            throw DomainException.Invariant("Title is required.");
+        if (estimateHours is < 0)
+            throw DomainException.Invariant("Estimate cannot be negative.");
         Title = title.Trim();
         Description = description?.Trim();
         Priority = priority;
@@ -97,36 +118,46 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
 
     public void Assign(Guid? assigneeId)
     {
-        if (AssigneeId == assigneeId) return;
+        if (AssigneeId == assigneeId)
+            return;
         AssigneeId = assigneeId;
         Raise(new TaskAssigneeChanged(Id, assigneeId));
     }
 
     public void AddTag(Guid tagId)
     {
-        if (_tags.Any(t => t.TagId == tagId)) return;
+        if (_tags.Any(t => t.TagId == tagId))
+            return;
         _tags.Add(new TaskTag(Id, tagId));
     }
+
     public void RemoveTag(Guid tagId) => _tags.RemoveAll(t => t.TagId == tagId);
 
     public void AddWatcher(Guid userId)
     {
-        if (_watchers.Any(w => w.UserId == userId)) return;
+        if (_watchers.Any(w => w.UserId == userId))
+            return;
         _watchers.Add(new TaskWatcher(Id, userId));
     }
+
     public void RemoveWatcher(Guid userId) => _watchers.RemoveAll(w => w.UserId == userId);
 
     public void AddDependency(Guid dependsOnId)
     {
-        if (dependsOnId == Id) throw DomainException.Invariant("A task cannot depend on itself.");
-        if (_dependencies.Any(d => d.DependsOnId == dependsOnId)) return;
+        if (dependsOnId == Id)
+            throw DomainException.Invariant("A task cannot depend on itself.");
+        if (_dependencies.Any(d => d.DependsOnId == dependsOnId))
+            return;
         _dependencies.Add(new TaskDependency(Id, dependsOnId));
     }
-    public void RemoveDependency(Guid dependsOnId) => _dependencies.RemoveAll(d => d.DependsOnId == dependsOnId);
+
+    public void RemoveDependency(Guid dependsOnId) =>
+        _dependencies.RemoveAll(d => d.DependsOnId == dependsOnId);
 
     public TaskComment AddComment(Guid authorId, string body, Guid? parentId = null)
     {
-        if (string.IsNullOrWhiteSpace(body)) throw DomainException.Invariant("Comment body is required.");
+        if (string.IsNullOrWhiteSpace(body))
+            throw DomainException.Invariant("Comment body is required.");
         if (parentId is not null && _comments.All(c => c.Id != parentId))
             throw DomainException.Invariant("Parent comment does not belong to this task.");
         var comment = new TaskComment(Id, authorId, body.Trim(), parentId);
@@ -137,15 +168,17 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
 
     public void EditComment(Guid commentId, Guid editorId, string body, DateTimeOffset now)
     {
-        var comment = _comments.FirstOrDefault(c => c.Id == commentId)
-                      ?? throw DomainException.NotFound(nameof(TaskComment), commentId);
+        var comment =
+            _comments.FirstOrDefault(c => c.Id == commentId)
+            ?? throw DomainException.NotFound(nameof(TaskComment), commentId);
         comment.Edit(editorId, body, now);
     }
 
     public void DeleteComment(Guid commentId, DateTimeOffset now)
     {
-        var comment = _comments.FirstOrDefault(c => c.Id == commentId)
-                      ?? throw DomainException.NotFound(nameof(TaskComment), commentId);
+        var comment =
+            _comments.FirstOrDefault(c => c.Id == commentId)
+            ?? throw DomainException.NotFound(nameof(TaskComment), commentId);
         comment.SoftDelete(now);
     }
 

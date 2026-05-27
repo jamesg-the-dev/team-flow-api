@@ -16,20 +16,25 @@ public sealed record CreateProjectCommand(
     PriorityLevel Priority,
     DateOnly? StartDate,
     DateOnly? DueDate,
-    string? ColorHex) : ICommand<ProjectDto>;
+    string? ColorHex
+) : ICommand<ProjectDto>;
 
 public sealed class CreateProjectValidator : AbstractValidator<CreateProjectCommand>
 {
     public CreateProjectValidator()
     {
         RuleFor(x => x.WorkspaceId).NotEmpty();
-        RuleFor(x => x.Key).NotEmpty().Matches("^[A-Z][A-Z0-9]{1,9}$")
+        RuleFor(x => x.Key)
+            .NotEmpty()
+            .Matches("^[A-Z][A-Z0-9]{1,9}$")
             .WithMessage("Key must be 2-10 uppercase alphanumerics starting with a letter.");
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Description).MaximumLength(4000);
-        RuleFor(x => x.ColorHex).Matches("^#[0-9A-Fa-f]{6}$")
+        RuleFor(x => x.ColorHex)
+            .Matches("^#[0-9A-Fa-f]{6}$")
             .When(x => !string.IsNullOrWhiteSpace(x.ColorHex));
-        RuleFor(x => x).Must(c => c.StartDate is null || c.DueDate is null || c.DueDate >= c.StartDate)
+        RuleFor(x => x)
+            .Must(c => c.StartDate is null || c.DueDate is null || c.DueDate >= c.StartDate)
             .WithMessage("Due date cannot precede start date.");
     }
 }
@@ -60,14 +65,26 @@ internal sealed class CreateProjectHandler : ICommandHandler<CreateProjectComman
             priority: request.Priority,
             startDate: request.StartDate,
             dueDate: request.DueDate,
-            colorHex: request.ColorHex);
+            colorHex: request.ColorHex
+        );
 
         _repository.Add(project);
 
         return new ProjectDto(
-            project.Id, project.WorkspaceId, project.Key, project.Name, project.Description,
-            project.Status, project.Priority, project.StartDate, project.DueDate,
-            project.Budget?.AmountCents, project.Budget?.Currency, project.ColorHex,
-            project.CreatedAt, project.UpdatedAt);
+            project.Id,
+            project.WorkspaceId,
+            project.Key,
+            project.Name,
+            project.Description,
+            project.Status,
+            project.Priority,
+            project.StartDate,
+            project.DueDate,
+            project.Budget?.AmountCents,
+            project.Budget?.Currency,
+            project.ColorHex,
+            project.CreatedAt,
+            project.UpdatedAt
+        );
     }
 }

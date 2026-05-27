@@ -36,17 +36,26 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
         b.Property(x => x.CreatedAt).HasColumnType("timestamptz");
         b.Property(x => x.ReadAt).HasColumnType("timestamptz");
         b.HasIndex(x => new { x.RecipientId, x.CreatedAt }).IsDescending(false, true);
-        b.HasIndex(x => x.RecipientId).HasFilter("read_at IS NULL").HasDatabaseName("ix_notifications_unread");
+        b.HasIndex(x => x.RecipientId)
+            .HasFilter("read_at IS NULL")
+            .HasDatabaseName("ix_notifications_unread");
         b.Ignore(x => x.DomainEvents);
     }
 }
 
-internal sealed class NotificationPreferenceConfiguration : IEntityTypeConfiguration<NotificationPreference>
+internal sealed class NotificationPreferenceConfiguration
+    : IEntityTypeConfiguration<NotificationPreference>
 {
     public void Configure(EntityTypeBuilder<NotificationPreference> b)
     {
         b.ToTable("notification_preferences");
-        b.HasKey(x => new { x.UserId, x.WorkspaceId, x.Kind, x.Channel });
+        b.HasKey(x => new
+        {
+            x.UserId,
+            x.WorkspaceId,
+            x.Kind,
+            x.Channel,
+        });
         b.Property(x => x.Kind).HasColumnType("notification_kind");
         b.Property(x => x.Channel).HasColumnType("delivery_channel");
     }

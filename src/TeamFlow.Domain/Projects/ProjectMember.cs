@@ -12,7 +12,12 @@ public sealed class ProjectMember
 
     private ProjectMember() { }
 
-    internal ProjectMember(Guid projectId, Guid userId, ProjectMemberRole role, DateTimeOffset addedAt)
+    internal ProjectMember(
+        Guid projectId,
+        Guid userId,
+        ProjectMemberRole role,
+        DateTimeOffset addedAt
+    )
     {
         ProjectId = projectId;
         UserId = userId;
@@ -29,5 +34,10 @@ public sealed class ProjectTag
     public Guid TagId { get; private set; }
 
     private ProjectTag() { }
-    internal ProjectTag(Guid projectId, Guid tagId) { ProjectId = projectId; TagId = tagId; }
+
+    internal ProjectTag(Guid projectId, Guid tagId)
+    {
+        ProjectId = projectId;
+        TagId = tagId;
+    }
 }

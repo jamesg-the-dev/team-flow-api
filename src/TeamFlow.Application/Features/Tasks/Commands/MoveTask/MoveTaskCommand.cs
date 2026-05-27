@@ -15,7 +15,8 @@ public sealed record MoveTaskCommand(
     Guid TaskId,
     TaskColumn TargetColumn,
     Guid? BeforeTaskId,
-    Guid? AfterTaskId) : ICommand;
+    Guid? AfterTaskId
+) : ICommand;
 
 public sealed class MoveTaskValidator : AbstractValidator<MoveTaskCommand>
 {
@@ -23,7 +24,8 @@ public sealed class MoveTaskValidator : AbstractValidator<MoveTaskCommand>
     {
         RuleFor(x => x.TaskId).NotEmpty();
         RuleFor(x => x.TargetColumn).IsInEnum();
-        RuleFor(x => x).Must(c => !(c.BeforeTaskId.HasValue && c.AfterTaskId.HasValue))
+        RuleFor(x => x)
+            .Must(c => !(c.BeforeTaskId.HasValue && c.AfterTaskId.HasValue))
             .WithMessage("Specify either BeforeTaskId or AfterTaskId, not both.");
     }
 }
@@ -35,41 +37,53 @@ internal sealed class MoveTaskHandler : ICommandHandler<MoveTaskCommand>
 
     public MoveTaskHandler(ITaskRepository tasks, IDateTimeProvider clock)
     {
-        _tasks = tasks; _clock = clock;
+        _tasks = tasks;
+        _clock = clock;
     }
 
     public async Task<Result> Handle(MoveTaskCommand request, CancellationToken ct)
     {
         var task = await _tasks.GetByIdAsync(request.TaskId, ct);
-        if (task is null) return Error.NotFound($"Task '{request.TaskId}' not found.");
+        if (task is null)
+            return Error.NotFound($"Task '{request.TaskId}' not found.");
 
         var newPosition = await ComputePositionAsync(task.ProjectId, request, ct);
         task.MoveTo(request.TargetColumn, newPosition, _clock.UtcNow);
         return Result.Success();
     }
 
-    private async Task<decimal> ComputePositionAsync(Guid projectId, MoveTaskCommand req, CancellationToken ct)
+    private async Task<decimal> ComputePositionAsync(
+        Guid projectId,
+        MoveTaskCommand req,
+        CancellationToken ct
+    )
     {
         // Append to bottom of target column
         if (req.BeforeTaskId is null && req.AfterTaskId is null)
         {
-            var (_, max) = await _tasks.GetColumnPositionBoundsAsync(projectId, req.TargetColumn, ct);
+            var (_, max) = await _tasks.GetColumnPositionBoundsAsync(
+                projectId,
+                req.TargetColumn,
+                ct
+            );
             return (max ?? 0m) + 1024m;
         }
 
         if (req.BeforeTaskId is { } beforeId)
         {
             var prev = await _tasks.GetNeighbourPositionAsync(beforeId, before: true, ct);
-            var beforePos = (await _tasks.GetByIdAsync(beforeId, ct))?.Position
-                            ?? throw new InvalidOperationException("Target before-task not found.");
+            var beforePos =
+                (await _tasks.GetByIdAsync(beforeId, ct))?.Position
+                ?? throw new InvalidOperationException("Target before-task not found.");
             return prev is null ? beforePos - 1024m : (prev.Value + beforePos) / 2m;
         }
         else
         {
             var afterId = req.AfterTaskId!.Value;
             var next = await _tasks.GetNeighbourPositionAsync(afterId, before: false, ct);
-            var afterPos = (await _tasks.GetByIdAsync(afterId, ct))?.Position
-                           ?? throw new InvalidOperationException("Target after-task not found.");
+            var afterPos =
+                (await _tasks.GetByIdAsync(afterId, ct))?.Position
+                ?? throw new InvalidOperationException("Target after-task not found.");
             return next is null ? afterPos + 1024m : (next.Value + afterPos) / 2m;
         }
     }

@@ -27,15 +27,25 @@ internal sealed class WorkspaceConfiguration : IEntityTypeConfiguration<Workspac
         b.Ignore(x => x.DomainEvents);
 
         // child collections
-        b.HasMany(x => x.Members).WithOne()
-            .HasForeignKey(m => m.WorkspaceId).OnDelete(DeleteBehavior.Cascade);
-        b.HasMany(x => x.Invites).WithOne()
-            .HasForeignKey(i => i.WorkspaceId).OnDelete(DeleteBehavior.Cascade);
-        b.HasMany(x => x.Tags).WithOne()
-            .HasForeignKey(t => t.WorkspaceId).OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(x => x.Members)
+            .WithOne()
+            .HasForeignKey(m => m.WorkspaceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(x => x.Invites)
+            .WithOne()
+            .HasForeignKey(i => i.WorkspaceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(x => x.Tags)
+            .WithOne()
+            .HasForeignKey(t => t.WorkspaceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        b.Navigation(x => x.Members).HasField("_members").UsePropertyAccessMode(PropertyAccessMode.Field);
-        b.Navigation(x => x.Invites).HasField("_invites").UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.Navigation(x => x.Members)
+            .HasField("_members")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.Navigation(x => x.Invites)
+            .HasField("_invites")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
         b.Navigation(x => x.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

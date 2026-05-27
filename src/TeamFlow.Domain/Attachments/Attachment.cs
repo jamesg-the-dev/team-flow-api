@@ -21,13 +21,25 @@ public sealed class Attachment : AggregateRoot
 
     private Attachment() { }
 
-    public static Attachment Create(Guid workspaceId, AttachmentOwner ownerKind, Guid ownerId,
-        string fileName, string mimeType, long sizeBytes, string storageKey, Guid uploadedBy)
+    public static Attachment Create(
+        Guid workspaceId,
+        AttachmentOwner ownerKind,
+        Guid ownerId,
+        string fileName,
+        string mimeType,
+        long sizeBytes,
+        string storageKey,
+        Guid uploadedBy
+    )
     {
-        if (string.IsNullOrWhiteSpace(fileName)) throw DomainException.Invariant("File name required.");
-        if (string.IsNullOrWhiteSpace(mimeType)) throw DomainException.Invariant("MIME type required.");
-        if (sizeBytes < 0) throw DomainException.Invariant("Size must be non-negative.");
-        if (string.IsNullOrWhiteSpace(storageKey)) throw DomainException.Invariant("Storage key required.");
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw DomainException.Invariant("File name required.");
+        if (string.IsNullOrWhiteSpace(mimeType))
+            throw DomainException.Invariant("MIME type required.");
+        if (sizeBytes < 0)
+            throw DomainException.Invariant("Size must be non-negative.");
+        if (string.IsNullOrWhiteSpace(storageKey))
+            throw DomainException.Invariant("Storage key required.");
         return new Attachment
         {
             Id = Guid.CreateVersion7(),
@@ -47,7 +59,11 @@ public sealed class Attachment : AggregateRoot
 public interface IAttachmentRepository : IRepository<Attachment>
 {
     Task<Attachment?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<IReadOnlyList<Attachment>> ListForOwnerAsync(AttachmentOwner kind, Guid ownerId, CancellationToken ct = default);
+    Task<IReadOnlyList<Attachment>> ListForOwnerAsync(
+        AttachmentOwner kind,
+        Guid ownerId,
+        CancellationToken ct = default
+    );
     void Add(Attachment attachment);
     void Remove(Attachment attachment);
 }

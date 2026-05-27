@@ -20,12 +20,14 @@ public sealed class ChangeProjectStatusValidator : AbstractValidator<ChangeProje
 internal sealed class ChangeProjectStatusHandler : ICommandHandler<ChangeProjectStatusCommand>
 {
     private readonly IProjectRepository _repository;
+
     public ChangeProjectStatusHandler(IProjectRepository repository) => _repository = repository;
 
     public async Task<Result> Handle(ChangeProjectStatusCommand request, CancellationToken ct)
     {
         var project = await _repository.GetByIdAsync(request.Id, ct);
-        if (project is null) return Error.NotFound($"Project '{request.Id}' not found.");
+        if (project is null)
+            return Error.NotFound($"Project '{request.Id}' not found.");
 
         project.ChangeStatus(request.Status);
         return Result.Success();

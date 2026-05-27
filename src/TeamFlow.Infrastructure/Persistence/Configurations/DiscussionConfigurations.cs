@@ -18,8 +18,13 @@ internal sealed class ChannelConfiguration : IEntityTypeConfiguration<Channel>
         b.HasIndex(x => new { x.WorkspaceId, x.Name }).IsUnique();
         b.Ignore(x => x.DomainEvents);
 
-        b.HasMany(x => x.Members).WithOne().HasForeignKey(m => m.ChannelId).OnDelete(DeleteBehavior.Cascade);
-        b.Navigation(x => x.Members).HasField("_members").UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.HasMany(x => x.Members)
+            .WithOne()
+            .HasForeignKey(m => m.ChannelId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.Navigation(x => x.Members)
+            .HasField("_members")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
 
@@ -56,14 +61,27 @@ internal sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .HasFilter("deleted_at IS NULL AND parent_id IS NULL");
         b.HasIndex(x => new { x.ParentId, x.CreatedAt }).HasFilter("parent_id IS NOT NULL");
 
-        b.HasOne<Message>().WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<Message>()
+            .WithMany()
+            .HasForeignKey(x => x.ParentId)
+            .OnDelete(DeleteBehavior.Cascade);
         b.HasQueryFilter(x => x.DeletedAt == null);
         b.Ignore(x => x.DomainEvents);
 
-        b.HasMany(x => x.Reactions).WithOne().HasForeignKey(r => r.MessageId).OnDelete(DeleteBehavior.Cascade);
-        b.HasMany(x => x.Mentions).WithOne().HasForeignKey(m => m.MessageId).OnDelete(DeleteBehavior.Cascade);
-        b.Navigation(x => x.Reactions).HasField("_reactions").UsePropertyAccessMode(PropertyAccessMode.Field);
-        b.Navigation(x => x.Mentions).HasField("_mentions").UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.HasMany(x => x.Reactions)
+            .WithOne()
+            .HasForeignKey(r => r.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(x => x.Mentions)
+            .WithOne()
+            .HasForeignKey(m => m.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.Navigation(x => x.Reactions)
+            .HasField("_reactions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.Navigation(x => x.Mentions)
+            .HasField("_mentions")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
 
@@ -72,7 +90,12 @@ internal sealed class MessageReactionConfiguration : IEntityTypeConfiguration<Me
     public void Configure(EntityTypeBuilder<MessageReaction> b)
     {
         b.ToTable("message_reactions");
-        b.HasKey(x => new { x.MessageId, x.UserId, x.Emoji });
+        b.HasKey(x => new
+        {
+            x.MessageId,
+            x.UserId,
+            x.Emoji,
+        });
         b.Property(x => x.Emoji).HasMaxLength(32);
         b.Property(x => x.CreatedAt).HasColumnType("timestamptz");
     }

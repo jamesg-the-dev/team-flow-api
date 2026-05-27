@@ -22,11 +22,14 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         b.Property(x => x.NextTaskNumber).IsRequired().HasDefaultValue(1);
 
         // Money value object → two columns
-        b.OwnsOne(x => x.Budget, mb =>
-        {
-            mb.Property(m => m.AmountCents).HasColumnName("budget_cents");
-            mb.Property(m => m.Currency).HasColumnName("budget_currency").HasMaxLength(3);
-        });
+        b.OwnsOne(
+            x => x.Budget,
+            mb =>
+            {
+                mb.Property(m => m.AmountCents).HasColumnName("budget_cents");
+                mb.Property(m => m.Currency).HasColumnName("budget_currency").HasMaxLength(3);
+            }
+        );
 
         b.Property(x => x.CreatedAt).HasColumnType("timestamptz");
         b.Property(x => x.UpdatedAt).HasColumnType("timestamptz");
@@ -39,9 +42,17 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         b.HasQueryFilter(x => x.DeletedAt == null);
         b.Ignore(x => x.DomainEvents);
 
-        b.HasMany(x => x.Members).WithOne().HasForeignKey(m => m.ProjectId).OnDelete(DeleteBehavior.Cascade);
-        b.HasMany(x => x.Tags).WithOne().HasForeignKey(t => t.ProjectId).OnDelete(DeleteBehavior.Cascade);
-        b.Navigation(x => x.Members).HasField("_members").UsePropertyAccessMode(PropertyAccessMode.Field);
+        b.HasMany(x => x.Members)
+            .WithOne()
+            .HasForeignKey(m => m.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.HasMany(x => x.Tags)
+            .WithOne()
+            .HasForeignKey(t => t.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.Navigation(x => x.Members)
+            .HasField("_members")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
         b.Navigation(x => x.Tags).HasField("_tags").UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
@@ -64,7 +75,9 @@ internal sealed class ProjectTagConfiguration : IEntityTypeConfiguration<Project
     {
         b.ToTable("project_tags");
         b.HasKey(x => new { x.ProjectId, x.TagId });
-        b.HasOne<TeamFlow.Domain.Workspaces.Tag>().WithMany()
-            .HasForeignKey(x => x.TagId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<TeamFlow.Domain.Workspaces.Tag>()
+            .WithMany()
+            .HasForeignKey(x => x.TagId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -10,7 +10,8 @@ public sealed record ListProjectsQuery(
     Guid WorkspaceId,
     ProjectStatus? Status,
     string? Search,
-    PaginationRequest Pagination) : IQuery<PagedResult<ProjectSummaryDto>>;
+    PaginationRequest Pagination
+) : IQuery<PagedResult<ProjectSummaryDto>>;
 
 /// <summary>
 /// Read-side query. Handler is implemented in the Infrastructure project (it uses EF projection
@@ -18,15 +19,23 @@ public sealed record ListProjectsQuery(
 /// </summary>
 public interface IListProjectsQueryService
 {
-    Task<PagedResult<ProjectSummaryDto>> ExecuteAsync(ListProjectsQuery query, CancellationToken ct);
+    Task<PagedResult<ProjectSummaryDto>> ExecuteAsync(
+        ListProjectsQuery query,
+        CancellationToken ct
+    );
 }
 
-internal sealed class ListProjectsHandler : IQueryHandler<ListProjectsQuery, PagedResult<ProjectSummaryDto>>
+internal sealed class ListProjectsHandler
+    : IQueryHandler<ListProjectsQuery, PagedResult<ProjectSummaryDto>>
 {
     private readonly IListProjectsQueryService _service;
+
     public ListProjectsHandler(IListProjectsQueryService service) => _service = service;
 
-    public async Task<Result<PagedResult<ProjectSummaryDto>>> Handle(ListProjectsQuery request, CancellationToken ct)
+    public async Task<Result<PagedResult<ProjectSummaryDto>>> Handle(
+        ListProjectsQuery request,
+        CancellationToken ct
+    )
     {
         var page = await _service.ExecuteAsync(request, ct);
         return Result.Success(page);

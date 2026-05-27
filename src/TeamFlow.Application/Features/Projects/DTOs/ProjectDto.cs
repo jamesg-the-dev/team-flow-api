@@ -16,7 +16,8 @@ public sealed record ProjectDto(
     string? BudgetCurrency,
     string? ColorHex,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt
+);
 
 public sealed record ProjectSummaryDto(
     Guid Id,
@@ -25,4 +26,5 @@ public sealed record ProjectSummaryDto(
     ProjectStatus Status,
     PriorityLevel Priority,
     DateOnly? DueDate,
-    int MemberCount);
+    int MemberCount
+);
