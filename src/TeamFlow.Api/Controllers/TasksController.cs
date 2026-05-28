@@ -2,13 +2,17 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamFlow.Api.Middleware;
+using TeamFlow.Application.Common.Pagination;
 using TeamFlow.Application.Features.Tasks.Commands.AddTaskComment;
 using TeamFlow.Application.Features.Tasks.Commands.AssignTask;
 using TeamFlow.Application.Features.Tasks.Commands.CreateTask;
+using TeamFlow.Application.Features.Tasks.Commands.DeleteTask;
 using TeamFlow.Application.Features.Tasks.Commands.MoveTask;
 using TeamFlow.Application.Features.Tasks.DTOs;
 using TeamFlow.Application.Features.Tasks.Queries.GetProjectBoard;
 using TeamFlow.Application.Features.Tasks.Queries.GetTaskById;
+using TeamFlow.Application.Features.Tasks.Queries.GetTaskByNumber;
+using TeamFlow.Application.Features.Tasks.Queries.ListProjectTasks;
 using TeamFlow.Domain.Enums;
 
 namespace TeamFlow.Api.Controllers;
@@ -33,6 +37,44 @@ public sealed class TasksController : ControllerBase
         var result = await _sender.Send(new GetProjectBoardQuery(projectId), ct);
         return result.ToActionResult().Result!;
     }
+
+    [HttpGet("projects/{projectId:guid}/tasks")]
+    [ProducesResponseType(typeof(PagedResult<TaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PagedResult<TaskDto>>> List(
+        Guid projectId,
+        [FromQuery] TaskColumn? column,
+        [FromQuery] Guid? assigneeId,
+        [FromQuery] PriorityLevel? priority,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default
+    ) =>
+        (
+            await _sender.Send(
+                new ListProjectTasksQuery(
+                    projectId,
+                    column,
+                    assigneeId,
+                    priority,
+                    search,
+                    new PaginationRequest(page, pageSize)
+                ),
+                ct
+            )
+        ).ToActionResult();
+
+    [HttpGet("projects/{projectId:guid}/tasks/by-number/{number:int}")]
+    [ProducesResponseType(typeof(TaskDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskDto>> GetByNumber(
+        Guid projectId,
+        int number,
+        CancellationToken ct
+    ) => (await _sender.Send(new GetTaskByNumberQuery(projectId, number), ct)).ToActionResult();
 
     [HttpPost("projects/{projectId:guid}/tasks")]
     [ProducesResponseType(typeof(TaskDto), StatusCodes.Status201Created)]
@@ -95,6 +137,13 @@ public sealed class TasksController : ControllerBase
         (
             await _sender.Send(new AddTaskCommentCommand(id, body.Body, body.ParentId), ct)
         ).ToActionResult();
+
+    [HttpDelete("tasks/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct) =>
+        (await _sender.Send(new DeleteTaskCommand(id), ct)).ToActionResult();
 
     public sealed record CreateTaskRequest(
         string Title,
