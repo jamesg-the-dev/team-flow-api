@@ -14,8 +14,8 @@ internal sealed class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         b.Property(x => x.Number).IsRequired();
         b.Property(x => x.Title).HasMaxLength(300).IsRequired();
         b.Property(x => x.Description);
-        b.Property(x => x.Column).HasColumnType("task_column").HasColumnName("column").IsRequired();
-        b.Property(x => x.Priority).HasColumnType("priority_level").IsRequired();
+        b.Property(x => x.Column).HasColumnName("column").IsRequired();
+        b.Property(x => x.Priority).IsRequired();
         b.Property(x => x.Position).HasColumnType("numeric(20,10)").IsRequired();
         b.Property(x => x.EstimateHours).HasColumnType("numeric(6,2)");
         b.Property(x => x.DueDate);

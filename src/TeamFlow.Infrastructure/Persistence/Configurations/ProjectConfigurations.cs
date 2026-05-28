@@ -14,8 +14,8 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         b.Property(x => x.Key).HasMaxLength(10).IsRequired();
         b.Property(x => x.Name).HasMaxLength(200).IsRequired();
         b.Property(x => x.Description);
-        b.Property(x => x.Status).HasColumnType("project_status").IsRequired();
-        b.Property(x => x.Priority).HasColumnType("priority_level").IsRequired();
+        b.Property(x => x.Status).IsRequired();
+        b.Property(x => x.Priority).IsRequired();
         b.Property(x => x.StartDate);
         b.Property(x => x.DueDate);
         b.Property(x => x.ColorHex).HasMaxLength(7);
@@ -63,7 +63,7 @@ internal sealed class ProjectMemberConfiguration : IEntityTypeConfiguration<Proj
     {
         b.ToTable("project_members");
         b.HasKey(x => new { x.ProjectId, x.UserId });
-        b.Property(x => x.Role).HasColumnType("project_member_role").IsRequired();
+        b.Property(x => x.Role).IsRequired();
         b.Property(x => x.AddedAt).HasColumnType("timestamptz");
         b.HasIndex(x => x.UserId);
     }

@@ -12,7 +12,7 @@ internal sealed class ChannelConfiguration : IEntityTypeConfiguration<Channel>
         b.HasKey(x => x.Id);
         b.Property(x => x.Name).HasColumnType("citext").HasMaxLength(80).IsRequired();
         b.Property(x => x.Topic).HasMaxLength(500);
-        b.Property(x => x.Type).HasColumnType("channel_type").IsRequired();
+        b.Property(x => x.Type).IsRequired();
         b.Property(x => x.CreatedAt).HasColumnType("timestamptz");
         b.Property(x => x.ArchivedAt).HasColumnType("timestamptz");
         b.HasIndex(x => new { x.WorkspaceId, x.Name }).IsUnique();

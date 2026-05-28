@@ -56,7 +56,7 @@ internal sealed class WorkspaceMemberConfiguration : IEntityTypeConfiguration<Wo
     {
         b.ToTable("workspace_members");
         b.HasKey(x => new { x.WorkspaceId, x.UserId });
-        b.Property(x => x.Role).HasColumnType("workspace_role").IsRequired();
+        b.Property(x => x.Role).IsRequired();
         b.Property(x => x.Title).HasMaxLength(200);
         b.Property(x => x.JoinedAt).HasColumnType("timestamptz");
         b.HasIndex(x => x.UserId);
@@ -70,7 +70,7 @@ internal sealed class WorkspaceInviteConfiguration : IEntityTypeConfiguration<Wo
         b.ToTable("workspace_invites");
         b.HasKey(x => x.Id);
         b.Property(x => x.Email).HasColumnType("citext").IsRequired();
-        b.Property(x => x.Role).HasColumnType("workspace_role").IsRequired();
+        b.Property(x => x.Role).IsRequired();
         b.Property(x => x.TokenHash).HasMaxLength(256).IsRequired();
         b.HasIndex(x => x.TokenHash).IsUnique();
         b.HasIndex(x => new { x.WorkspaceId, x.Email }).IsUnique();

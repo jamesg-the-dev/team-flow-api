@@ -12,7 +12,7 @@ internal sealed class AttachmentConfiguration : IEntityTypeConfiguration<Attachm
     {
         b.ToTable("attachments");
         b.HasKey(x => x.Id);
-        b.Property(x => x.OwnerKind).HasColumnType("attachment_owner").IsRequired();
+        b.Property(x => x.OwnerKind).IsRequired();
         b.Property(x => x.FileName).HasMaxLength(500).IsRequired();
         b.Property(x => x.MimeType).HasMaxLength(120).IsRequired();
         b.Property(x => x.StorageKey).HasMaxLength(500).IsRequired();
@@ -28,7 +28,7 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
     {
         b.ToTable("notifications");
         b.HasKey(x => x.Id);
-        b.Property(x => x.Kind).HasColumnType("notification_kind").IsRequired();
+        b.Property(x => x.Kind).IsRequired();
         b.Property(x => x.Title).HasMaxLength(300).IsRequired();
         b.Property(x => x.Body);
         b.Property(x => x.TargetKind).HasMaxLength(50);
@@ -56,8 +56,7 @@ internal sealed class NotificationPreferenceConfiguration
             x.Kind,
             x.Channel,
         });
-        b.Property(x => x.Kind).HasColumnType("notification_kind");
-        b.Property(x => x.Channel).HasColumnType("delivery_channel");
+        // Kind and Channel are mapped to PG enums via HasPostgresEnum + MapEnum.
     }
 }
 

@@ -68,6 +68,16 @@ public static class DependencyInjection
                     {
                         npg.EnableRetryOnFailure(3);
                         npg.MigrationsHistoryTable("__ef_migrations_history", "public");
+
+                        npg.MapEnum<Domain.Enums.WorkspaceRole>("workspace_role");
+                        npg.MapEnum<Domain.Enums.ProjectStatus>("project_status");
+                        npg.MapEnum<Domain.Enums.ProjectMemberRole>("project_member_role");
+                        npg.MapEnum<Domain.Enums.PriorityLevel>("priority_level");
+                        npg.MapEnum<Domain.Enums.TaskColumn>("task_column");
+                        npg.MapEnum<Domain.Enums.ChannelType>("channel_type");
+                        npg.MapEnum<Domain.Enums.NotificationKind>("notification_kind");
+                        npg.MapEnum<Domain.Enums.DeliveryChannel>("delivery_channel");
+                        npg.MapEnum<Domain.Enums.AttachmentOwner>("attachment_owner");
                     }
                 );
                 options.UseSnakeCaseNamingConvention();
