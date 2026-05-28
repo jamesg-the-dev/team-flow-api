@@ -9,6 +9,9 @@ public interface IWorkspaceRepository : IRepository<Workspace>
     /// <summary>Loads the aggregate including both <see cref="Workspace.Members"/> and <see cref="Workspace.Invites"/>.</summary>
     Task<Workspace?> GetByIdWithInvitesAsync(Guid id, CancellationToken ct = default);
 
+    /// <summary>Loads the aggregate including <see cref="Workspace.Tags"/>.</summary>
+    Task<Workspace?> GetByIdWithTagsAsync(Guid id, CancellationToken ct = default);
+
     Task<Workspace?> GetBySlugAsync(string slug, CancellationToken ct = default);
     Task<bool> SlugExistsAsync(string slug, CancellationToken ct = default);
 

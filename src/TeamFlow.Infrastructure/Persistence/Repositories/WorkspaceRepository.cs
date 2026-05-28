@@ -25,6 +25,12 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
             .Include(w => w.Invites)
             .FirstOrDefaultAsync(w => w.Id == id, ct);
 
+    public Task<Workspace?> GetByIdWithTagsAsync(Guid id, CancellationToken ct = default) =>
+        _ctx
+            .Workspaces.Include(w => w.Members)
+            .Include(w => w.Tags)
+            .FirstOrDefaultAsync(w => w.Id == id, ct);
+
     public Task<Workspace?> GetBySlugAsync(string slug, CancellationToken ct = default) =>
         _ctx.Workspaces.FirstOrDefaultAsync(w => w.Slug == slug.ToLower(), ct);
 

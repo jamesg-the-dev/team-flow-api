@@ -197,5 +197,26 @@ public sealed class Workspace : AuditableAggregateRoot, ISoftDeletable
         return tag;
     }
 
+    public void UpdateTag(Guid tagId, string? name, string? colorHex)
+    {
+        var tag =
+            _tags.FirstOrDefault(t => t.Id == tagId)
+            ?? throw DomainException.NotFound(nameof(Tag), tagId);
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            if (
+                _tags.Any(t =>
+                    t.Id != tagId && t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+                )
+            )
+                throw DomainException.Invariant($"Tag '{name}' already exists.");
+            tag.Rename(name);
+        }
+
+        if (!string.IsNullOrWhiteSpace(colorHex))
+            tag.ChangeColor(colorHex);
+    }
+
     public void SoftDelete(DateTimeOffset at) => DeletedAt = at;
 }

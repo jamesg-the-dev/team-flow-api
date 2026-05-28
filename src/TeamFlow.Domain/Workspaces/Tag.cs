@@ -34,4 +34,11 @@ public sealed class Tag : Entity
             throw DomainException.Invariant("Tag name required.");
         Name = name.Trim();
     }
+
+    public void ChangeColor(string colorHex)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(colorHex, "^#[0-9A-Fa-f]{6}$"))
+            throw DomainException.Invariant("Tag color must be a 7-char hex value.");
+        ColorHex = colorHex;
+    }
 }
