@@ -24,8 +24,8 @@ public static class SupabaseAuthExtensions
         var supabaseOpts =
             configuration.GetSection(SupabaseAuthOptions.SectionName).Get<SupabaseAuthOptions>()
             ?? throw new InvalidOperationException("Missing Supabase configuration.");
-        if (string.IsNullOrWhiteSpace(supabaseOpts.JwtSecret))
-            throw new InvalidOperationException("Supabase:JwtSecret is required.");
+        if (string.IsNullOrWhiteSpace(supabaseOpts.Url))
+            throw new InvalidOperationException("Supabase:Url is required.");
 
         var realtimeOpts =
             configuration.GetSection(RealtimeTokenOptions.SectionName).Get<RealtimeTokenOptions>()
@@ -77,18 +77,19 @@ public static class SupabaseAuthExtensions
 
     private static void ConfigureSupabaseScheme(JwtBearerOptions options, SupabaseAuthOptions opts)
     {
+        var issuer = $"{opts.Url.TrimEnd('/')}/auth/v1";
+
+        options.Authority = issuer;
+        options.Audience = opts.Audience;
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = !string.IsNullOrWhiteSpace(opts.Url),
-            ValidIssuer = string.IsNullOrWhiteSpace(opts.Url)
-                ? null
-                : $"{opts.Url.TrimEnd('/')}/auth/v1",
+            ValidateIssuer = true,
+            ValidIssuer = issuer,
             ValidateAudience = true,
             ValidAudience = opts.Audience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(opts.JwtSecret)),
             NameClaimType = "sub",
             RoleClaimType = "role",
             ClockSkew = TimeSpan.FromSeconds(30),
