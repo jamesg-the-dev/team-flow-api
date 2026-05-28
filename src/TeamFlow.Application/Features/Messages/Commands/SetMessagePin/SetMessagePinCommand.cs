@@ -1,6 +1,7 @@
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Common.Authorization;
 using TeamFlow.Application.Common.Messaging;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Application.Common.Results;
 using TeamFlow.Domain.Discussions;
 using TeamFlow.Domain.Workspaces;
@@ -16,18 +17,21 @@ internal sealed class SetMessagePinHandler : ICommandHandler<SetMessagePinComman
     private readonly IChannelRepository _channels;
     private readonly IWorkspaceRepository _workspaces;
     private readonly ICurrentUser _currentUser;
+    private readonly IRealtimePublishQueue _realtime;
 
     public SetMessagePinHandler(
         IMessageRepository messages,
         IChannelRepository channels,
         IWorkspaceRepository workspaces,
-        ICurrentUser currentUser
+        ICurrentUser currentUser,
+        IRealtimePublishQueue realtime
     )
     {
         _messages = messages;
         _channels = channels;
         _workspaces = workspaces;
         _currentUser = currentUser;
+        _realtime = realtime;
     }
 
     public async Task<Result> Handle(SetMessagePinCommand request, CancellationToken ct)
@@ -51,6 +55,14 @@ internal sealed class SetMessagePinHandler : ICommandHandler<SetMessagePinComman
 
         if (request.Pinned) message.Pin();
         else message.Unpin();
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.Channel,
+                message.ChannelId,
+                RealtimeEvents.MessagePinned,
+                new { messageId = message.Id, channelId = message.ChannelId, pinned = request.Pinned }
+            )
+        );
         return Result.Success();
     }
 }

@@ -1,6 +1,7 @@
 using FluentValidation;
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Common.Messaging;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Application.Common.Results;
 using TeamFlow.Domain.Discussions;
 using TeamFlow.Domain.SeedWork;
@@ -26,16 +27,19 @@ internal sealed class SetMessageReactionHandler : ICommandHandler<SetMessageReac
     private readonly IMessageRepository _messages;
     private readonly IChannelRepository _channels;
     private readonly ICurrentUser _currentUser;
+    private readonly IRealtimePublishQueue _realtime;
 
     public SetMessageReactionHandler(
         IMessageRepository messages,
         IChannelRepository channels,
-        ICurrentUser currentUser
+        ICurrentUser currentUser,
+        IRealtimePublishQueue realtime
     )
     {
         _messages = messages;
         _channels = channels;
         _currentUser = currentUser;
+        _realtime = realtime;
     }
 
     public async Task<Result> Handle(SetMessageReactionCommand request, CancellationToken ct)
@@ -58,6 +62,21 @@ internal sealed class SetMessageReactionHandler : ICommandHandler<SetMessageReac
             return Error.Validation(ex.Message);
         }
 
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.Channel,
+                message.ChannelId,
+                RealtimeEvents.ReactionChanged,
+                new
+                {
+                    messageId = message.Id,
+                    channelId = message.ChannelId,
+                    userId = actor,
+                    emoji = request.Emoji,
+                    reacted = request.Reacted,
+                }
+            )
+        );
         return Result.Success();
     }
 }

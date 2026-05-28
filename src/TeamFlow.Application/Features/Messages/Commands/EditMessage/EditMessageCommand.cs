@@ -1,6 +1,7 @@
 using FluentValidation;
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Common.Messaging;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Application.Common.Results;
 using TeamFlow.Application.Features.Messages.DTOs;
 using TeamFlow.Domain.Discussions;
@@ -24,16 +25,19 @@ internal sealed class EditMessageHandler : ICommandHandler<EditMessageCommand, M
     private readonly IMessageRepository _messages;
     private readonly ICurrentUser _currentUser;
     private readonly IDateTimeProvider _clock;
+    private readonly IRealtimePublishQueue _realtime;
 
     public EditMessageHandler(
         IMessageRepository messages,
         ICurrentUser currentUser,
-        IDateTimeProvider clock
+        IDateTimeProvider clock,
+        IRealtimePublishQueue realtime
     )
     {
         _messages = messages;
         _currentUser = currentUser;
         _clock = clock;
+        _realtime = realtime;
     }
 
     public async Task<Result<MessageDto>> Handle(EditMessageCommand request, CancellationToken ct)
@@ -55,6 +59,15 @@ internal sealed class EditMessageHandler : ICommandHandler<EditMessageCommand, M
             return Error.Validation(ex.Message);
         }
 
-        return message.ToDto();
+        var dto = message.ToDto();
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.Channel,
+                message.ChannelId,
+                RealtimeEvents.MessageEdited,
+                dto
+            )
+        );
+        return dto;
     }
 }

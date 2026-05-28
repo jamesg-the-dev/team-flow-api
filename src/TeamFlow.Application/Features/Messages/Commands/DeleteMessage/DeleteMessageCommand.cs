@@ -1,6 +1,7 @@
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Common.Authorization;
 using TeamFlow.Application.Common.Messaging;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Application.Common.Results;
 using TeamFlow.Domain.Discussions;
 using TeamFlow.Domain.Workspaces;
@@ -20,13 +21,15 @@ internal sealed class DeleteMessageHandler : ICommandHandler<DeleteMessageComman
     private readonly IWorkspaceRepository _workspaces;
     private readonly ICurrentUser _currentUser;
     private readonly IDateTimeProvider _clock;
+    private readonly IRealtimePublishQueue _realtime;
 
     public DeleteMessageHandler(
         IMessageRepository messages,
         IChannelRepository channels,
         IWorkspaceRepository workspaces,
         ICurrentUser currentUser,
-        IDateTimeProvider clock
+        IDateTimeProvider clock,
+        IRealtimePublishQueue realtime
     )
     {
         _messages = messages;
@@ -34,6 +37,7 @@ internal sealed class DeleteMessageHandler : ICommandHandler<DeleteMessageComman
         _workspaces = workspaces;
         _currentUser = currentUser;
         _clock = clock;
+        _realtime = realtime;
     }
 
     public async Task<Result> Handle(DeleteMessageCommand request, CancellationToken ct)
@@ -58,6 +62,14 @@ internal sealed class DeleteMessageHandler : ICommandHandler<DeleteMessageComman
         }
 
         message.SoftDelete(_clock.UtcNow);
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.Channel,
+                message.ChannelId,
+                RealtimeEvents.MessageDeleted,
+                new { messageId = message.Id, channelId = message.ChannelId }
+            )
+        );
         return Result.Success();
     }
 }

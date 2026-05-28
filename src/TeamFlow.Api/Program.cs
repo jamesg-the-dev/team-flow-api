@@ -2,7 +2,9 @@ using HealthChecks.NpgSql;
 using Microsoft.OpenApi.Models;
 using TeamFlow.Api.Auth;
 using TeamFlow.Api.Middleware;
+using TeamFlow.Api.Realtime;
 using TeamFlow.Application;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,10 @@ builder
     .Services.AddApplication()
     .AddInfrastructure(builder.Configuration)
     .AddSupabaseAuth(builder.Configuration);
+
+builder.Services.AddSignalR();
+// Replace the no-op publisher registered by AddApplication with the SignalR-backed one.
+builder.Services.AddSingleton<IRealtimePublisher, SignalRRealtimePublisher>();
 
 builder
     .Services.AddControllers()
@@ -93,8 +99,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<RealtimeHub>(RealtimeHub.Path);
 app.MapHealthChecks("/health");
 
 app.Run();
 
-public partial class Program;

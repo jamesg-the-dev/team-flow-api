@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using TeamFlow.Application.Common.Realtime;
+using TeamFlow.Application.Features.Notifications.DTOs;
 using TeamFlow.Application.Features.Notifications.Services;
 using TeamFlow.Domain.Enums;
 using TeamFlow.Domain.Notifications;
@@ -15,11 +17,17 @@ internal sealed class NotificationDispatcher : INotificationDispatcher
 {
     private readonly INotificationRepository _notifications;
     private readonly TeamFlowDbContext _ctx;
+    private readonly IRealtimePublishQueue _realtime;
 
-    public NotificationDispatcher(INotificationRepository notifications, TeamFlowDbContext ctx)
+    public NotificationDispatcher(
+        INotificationRepository notifications,
+        TeamFlowDbContext ctx,
+        IRealtimePublishQueue realtime
+    )
     {
         _notifications = notifications;
         _ctx = ctx;
+        _realtime = realtime;
     }
 
     public async Task NotifyAsync(NotificationRequest request, CancellationToken ct)
@@ -41,6 +49,7 @@ internal sealed class NotificationDispatcher : INotificationDispatcher
             request.Url
         );
         _notifications.Add(n);
+        EnqueueRealtime(n);
     }
 
     public async Task NotifyManyAsync(
@@ -90,6 +99,9 @@ internal sealed class NotificationDispatcher : INotificationDispatcher
                     req.Url
                 )
             );
+            // Use the request fields directly — the entity isn't materialized again until
+            // SaveChanges runs, but the realtime payload only needs the shape clients render.
+            EnqueueRealtime(req);
         }
     }
 
@@ -109,4 +121,46 @@ internal sealed class NotificationDispatcher : INotificationDispatcher
                 && !p.Enabled
             )
             .AnyAsync(ct);
+
+    private void EnqueueRealtime(Notification n) =>
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.User,
+                n.RecipientId,
+                RealtimeEvents.NotificationCreated,
+                new NotificationDto(
+                    n.Id,
+                    n.WorkspaceId,
+                    n.ActorId,
+                    n.Kind,
+                    n.Title,
+                    n.Body,
+                    n.TargetKind,
+                    n.TargetId,
+                    n.Url,
+                    n.ReadAt,
+                    n.CreatedAt
+                )
+            )
+        );
+
+    private void EnqueueRealtime(NotificationRequest r) =>
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.User,
+                r.RecipientId,
+                RealtimeEvents.NotificationCreated,
+                new
+                {
+                    workspaceId = r.WorkspaceId,
+                    actorId = r.ActorId,
+                    kind = r.Kind,
+                    title = r.Title,
+                    body = r.Body,
+                    targetKind = r.TargetKind,
+                    targetId = r.TargetId,
+                    url = r.Url,
+                }
+            )
+        );
 }

@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Behaviors;
+using TeamFlow.Application.Common.Realtime;
 
 namespace TeamFlow.Application;
 
@@ -22,6 +23,12 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
+
+        // Scoped per-request buffer for realtime events. The transport-side publisher is
+        // registered by the Api project (SignalR-backed); a no-op fallback lives here so
+        // application tests don't need to wire SignalR.
+        services.AddScoped<IRealtimePublishQueue, RealtimePublishQueue>();
+        services.AddSingleton<IRealtimePublisher, NoOpRealtimePublisher>();
 
         return services;
     }

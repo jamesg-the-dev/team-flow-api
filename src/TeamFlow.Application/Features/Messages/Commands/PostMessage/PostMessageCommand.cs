@@ -1,6 +1,7 @@
 using FluentValidation;
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Common.Messaging;
+using TeamFlow.Application.Common.Realtime;
 using TeamFlow.Application.Common.Results;
 using TeamFlow.Application.Features.Messages.DTOs;
 using TeamFlow.Application.Features.Notifications.Services;
@@ -36,18 +37,21 @@ internal sealed class PostMessageHandler : ICommandHandler<PostMessageCommand, M
     private readonly IChannelRepository _channels;
     private readonly ICurrentUser _currentUser;
     private readonly INotificationDispatcher _dispatcher;
+    private readonly IRealtimePublishQueue _realtime;
 
     public PostMessageHandler(
         IMessageRepository messages,
         IChannelRepository channels,
         ICurrentUser currentUser,
-        INotificationDispatcher dispatcher
+        INotificationDispatcher dispatcher,
+        IRealtimePublishQueue realtime
     )
     {
         _messages = messages;
         _channels = channels;
         _currentUser = currentUser;
         _dispatcher = dispatcher;
+        _realtime = realtime;
     }
 
     public async Task<Result<MessageDto>> Handle(PostMessageCommand request, CancellationToken ct)
@@ -138,6 +142,15 @@ internal sealed class PostMessageHandler : ICommandHandler<PostMessageCommand, M
         if (notifications.Count > 0)
             await _dispatcher.NotifyManyAsync(notifications, ct);
 
-        return message.ToDto();
+        var dto = message.ToDto();
+        _realtime.Enqueue(
+            new RealtimeEvent(
+                RealtimeTarget.Channel,
+                channel.Id,
+                RealtimeEvents.MessagePosted,
+                dto
+            )
+        );
+        return dto;
     }
 }
