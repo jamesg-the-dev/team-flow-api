@@ -9,20 +9,6 @@ namespace TeamFlow.Api.Auth;
 
 public static class SupabaseAuthExtensions
 {
-    /// <summary>
-    /// Configures the two authentication schemes used by the API:
-    ///
-    /// 1. <see cref="JwtBearerDefaults.AuthenticationScheme"/> — Supabase access tokens.
-    ///    Used for every regular HTTP endpoint. The token is only ever read from the
-    ///    <c>Authorization</c> header — never from a query string — so it cannot leak via
-    ///    WebSocket upgrade URLs, proxy access logs, or referrer headers.
-    ///
-    /// 2. <see cref="RealtimeTokenOptions.Scheme"/> — short-lived hub tokens minted by
-    ///    <see cref="IRealtimeTokenIssuer"/>. These are the *only* tokens accepted on the
-    ///    SignalR hub. They are signed with a server-only key, scoped to a dedicated
-    ///    audience, and expire in seconds — so even if logged in a query string the blast
-    ///    radius is bounded and the value is useless against Supabase or any other API.
-    /// </summary>
     public static IServiceCollection AddSupabaseAuth(
         this IServiceCollection services,
         IConfiguration configuration
@@ -65,37 +51,31 @@ public static class SupabaseAuthExtensions
                 options => ConfigureRealtimeScheme(options, realtimeOpts)
             );
 
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(
                 "authenticated",
                 p =>
                     p.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                         .RequireAuthenticatedUser()
-            );
-            options.AddPolicy(
+            )
+            .AddPolicy(
                 "workspace-member",
                 p =>
                     p.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                         .RequireAuthenticatedUser()
-            );
-            options.AddPolicy(
+            )
+            .AddPolicy(
                 "realtime-hub",
                 p =>
                     p.AddAuthenticationSchemes(RealtimeTokenOptions.Scheme)
                         .RequireAuthenticatedUser()
             );
-            // App-level row authorization is enforced inside handlers; Supabase RLS is the
-            // database-level safety net.
-        });
 
         return services;
     }
 
-    private static void ConfigureSupabaseScheme(
-        JwtBearerOptions options,
-        SupabaseAuthOptions opts
-    )
+    private static void ConfigureSupabaseScheme(JwtBearerOptions options, SupabaseAuthOptions opts)
     {
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
@@ -113,14 +93,9 @@ public static class SupabaseAuthExtensions
             RoleClaimType = "role",
             ClockSkew = TimeSpan.FromSeconds(30),
         };
-        // Deliberately no query-string token handling here: Supabase access tokens are
-        // never accepted on the WebSocket transport. The hub uses its own scheme.
     }
 
-    private static void ConfigureRealtimeScheme(
-        JwtBearerOptions options,
-        RealtimeTokenOptions opts
-    )
+    private static void ConfigureRealtimeScheme(JwtBearerOptions options, RealtimeTokenOptions opts)
     {
         options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
@@ -168,9 +143,6 @@ public static class SupabaseAuthExtensions
             return;
         }
 
-        // No (or too-short) key configured. Generate an ephemeral 64-byte key so the app
-        // can boot, and log a loud warning at startup. Multi-instance deployments REQUIRE
-        // a shared persistent key configured via user-secrets / env / key vault.
         opts.SigningKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         services.AddSingleton<IStartupFilter>(new RealtimeKeyWarningStartupFilter());
     }
@@ -219,8 +191,7 @@ internal sealed class HttpContextCurrentUser : ICurrentUser
 
     public string? Email => Claim("email");
 
-    public bool EmailVerified =>
-        bool.TryParse(Claim("email_verified"), out var v) && v;
+    public bool EmailVerified => bool.TryParse(Claim("email_verified"), out var v) && v;
 
     public string? FullName => MetadataString("full_name") ?? MetadataString("name");
 
@@ -236,7 +207,9 @@ internal sealed class HttpContextCurrentUser : ICurrentUser
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(raw);
-            return doc.RootElement.TryGetProperty(key, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String
+            return
+                doc.RootElement.TryGetProperty(key, out var v)
+                && v.ValueKind == System.Text.Json.JsonValueKind.String
                 ? v.GetString()
                 : null;
         }
