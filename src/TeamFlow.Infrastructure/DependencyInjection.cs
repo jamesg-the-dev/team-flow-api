@@ -9,6 +9,7 @@ using TeamFlow.Application.Features.Messages.Queries.GetMessage;
 using TeamFlow.Application.Features.Messages.Queries.ListChannelMessages;
 using TeamFlow.Application.Features.Messages.Queries.ListChannelPins;
 using TeamFlow.Application.Features.Messages.Queries.ListThreadMessages;
+using TeamFlow.Application.Features.Notifications.Services;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectMembers;
@@ -106,6 +107,7 @@ public static class DependencyInjection
 
         // Bulk operations
         services.AddScoped<IMessagePurger, Persistence.Services.MessagePurger>();
+        services.AddScoped<INotificationDispatcher, Persistence.Services.NotificationDispatcher>();
 
         return services;
     }

@@ -168,6 +168,15 @@ internal sealed class NotificationRepository : INotificationRepository
     public Task<int> CountUnreadAsync(Guid recipientId, CancellationToken ct = default) =>
         _ctx.Notifications.CountAsync(n => n.RecipientId == recipientId && n.ReadAt == null, ct);
 
+    public Task<int> MarkAllReadAsync(
+        Guid recipientId,
+        DateTimeOffset at,
+        CancellationToken ct = default
+    ) =>
+        _ctx
+            .Notifications.Where(n => n.RecipientId == recipientId && n.ReadAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, at), ct);
+
     public void Add(Notification notification) => _ctx.Notifications.Add(notification);
 }
 

@@ -97,6 +97,11 @@ public interface INotificationRepository : IRepository<Notification>
         CancellationToken ct = default
     );
     Task<int> CountUnreadAsync(Guid recipientId, CancellationToken ct = default);
+    /// <summary>
+    /// Bulk-marks every unread notification for the recipient as read at the supplied time.
+    /// Issued as a single SQL UPDATE; returns the number of rows affected.
+    /// </summary>
+    Task<int> MarkAllReadAsync(Guid recipientId, DateTimeOffset at, CancellationToken ct = default);
     void Add(Notification notification);
 }
 
