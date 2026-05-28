@@ -3,6 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
+using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
+using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
+using TeamFlow.Application.Features.Projects.Queries.ListProjectMembers;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
 using TeamFlow.Application.Features.Tasks.Queries.GetProjectBoard;
 using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceInvites;
@@ -78,6 +81,9 @@ public static class DependencyInjection
         // Read-side query services (CQRS Q-side)
         services.AddScoped<IListProjectsQueryService, ListProjectsQueryService>();
         services.AddScoped<IGetProjectBoardQueryService, GetProjectBoardQueryService>();
+        services.AddScoped<IListProjectMembersQueryService, ListProjectMembersQueryService>();
+        services.AddScoped<IListProjectActivityQueryService, ListProjectActivityQueryService>();
+        services.AddScoped<IGetProjectStatsQueryService, GetProjectStatsQueryService>();
         services.AddScoped<IListMyWorkspacesQueryService, ListMyWorkspacesQueryService>();
         services.AddScoped<IListWorkspaceMembersQueryService, ListWorkspaceMembersQueryService>();
         services.AddScoped<IListWorkspaceInvitesQueryService, ListWorkspaceInvitesQueryService>();

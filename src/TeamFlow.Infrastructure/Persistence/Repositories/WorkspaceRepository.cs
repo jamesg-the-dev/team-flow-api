@@ -55,6 +55,23 @@ internal sealed class WorkspaceRepository : IWorkspaceRepository
         _ctx.WorkspaceMembers.AsNoTracking()
             .AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId, ct);
 
+    public Task<bool> IsOwnerOrAdminAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        _ctx.WorkspaceMembers.AsNoTracking()
+            .AnyAsync(
+                m =>
+                    m.WorkspaceId == workspaceId
+                    && m.UserId == userId
+                    && (
+                        m.Role == TeamFlow.Domain.Enums.WorkspaceRole.Owner
+                        || m.Role == TeamFlow.Domain.Enums.WorkspaceRole.Admin
+                    ),
+                ct
+            );
+
     public Task<Workspace?> GetByInviteTokenHashAsync(
         string tokenHash,
         CancellationToken ct = default

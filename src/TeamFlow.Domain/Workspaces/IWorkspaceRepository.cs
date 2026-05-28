@@ -21,6 +21,13 @@ public interface IWorkspaceRepository : IRepository<Workspace>
     /// <summary>Cheap membership check used by handlers for authorization.</summary>
     Task<bool> IsMemberAsync(Guid workspaceId, Guid userId, CancellationToken ct = default);
 
+    /// <summary>Cheap role check; <c>true</c> if user is the workspace Owner or an Admin.</summary>
+    Task<bool> IsOwnerOrAdminAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct = default
+    );
+
     /// <summary>
     /// Loads the workspace whose <see cref="WorkspaceInvite.TokenHash"/> matches, including its
     /// invites and members so the aggregate can validate and accept the invite atomically.

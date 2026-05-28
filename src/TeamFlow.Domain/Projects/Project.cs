@@ -142,6 +142,20 @@ public sealed class Project : AuditableAggregateRoot, ISoftDeletable
         Raise(new ProjectMemberRemoved(Id, userId));
     }
 
+    public void UpdateMemberRole(Guid userId, ProjectMemberRole role)
+    {
+        var member =
+            _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw DomainException.NotFound(nameof(ProjectMember), userId);
+        if (
+            member.Role == ProjectMemberRole.Lead
+            && role != ProjectMemberRole.Lead
+            && _members.Count(m => m.Role == ProjectMemberRole.Lead) == 1
+        )
+            throw DomainException.Invariant("Projects must keep at least one lead.");
+        member.ChangeRole(role);
+    }
+
     public void AddTag(Guid tagId)
     {
         if (_tags.Any(t => t.TagId == tagId))

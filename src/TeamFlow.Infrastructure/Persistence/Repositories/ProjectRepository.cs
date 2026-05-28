@@ -34,6 +34,15 @@ internal sealed class ProjectRepository : IProjectRepository
             .Projects.IgnoreQueryFilters()
             .AnyAsync(p => p.WorkspaceId == workspaceId && p.Key == key && p.DeletedAt == null, ct);
 
+    public Task<bool> IsMemberAsync(
+        Guid projectId,
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        _ctx
+            .ProjectMembers.AsNoTracking()
+            .AnyAsync(m => m.ProjectId == projectId && m.UserId == userId, ct);
+
     public void Add(Project project) => _ctx.Projects.Add(project);
 
     public void Remove(Project project) => _ctx.Projects.Remove(project);

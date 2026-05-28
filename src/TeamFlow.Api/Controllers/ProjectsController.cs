@@ -6,9 +6,15 @@ using TeamFlow.Application.Common.Pagination;
 using TeamFlow.Application.Features.Projects.Commands.AddProjectMember;
 using TeamFlow.Application.Features.Projects.Commands.ChangeProjectStatus;
 using TeamFlow.Application.Features.Projects.Commands.CreateProject;
+using TeamFlow.Application.Features.Projects.Commands.DeleteProject;
+using TeamFlow.Application.Features.Projects.Commands.RemoveProjectMember;
 using TeamFlow.Application.Features.Projects.Commands.UpdateProject;
+using TeamFlow.Application.Features.Projects.Commands.UpdateProjectMember;
 using TeamFlow.Application.Features.Projects.DTOs;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectById;
+using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
+using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
+using TeamFlow.Application.Features.Projects.Queries.ListProjectMembers;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
 using TeamFlow.Domain.Enums;
 
@@ -130,6 +136,76 @@ public sealed class ProjectsController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("{id:guid}/members")]
+    [ProducesResponseType(typeof(IReadOnlyList<ProjectMemberDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<ProjectMemberDto>>> ListMembers(
+        Guid id,
+        CancellationToken ct
+    ) => (await _sender.Send(new ListProjectMembersQuery(id), ct)).ToActionResult();
+
+    [HttpPatch("{id:guid}/members/{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateMember(
+        Guid id,
+        Guid userId,
+        [FromBody] UpdateMemberRequest body,
+        CancellationToken ct
+    ) =>
+        (
+            await _sender.Send(
+                new UpdateProjectMemberCommand(id, userId, body.Role),
+                ct
+            )
+        ).ToActionResult();
+
+    [HttpDelete("{id:guid}/members/{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> RemoveMember(
+        Guid id,
+        Guid userId,
+        CancellationToken ct
+    ) =>
+        (
+            await _sender.Send(new RemoveProjectMemberCommand(id, userId), ct)
+        ).ToActionResult();
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct) =>
+        (await _sender.Send(new DeleteProjectCommand(id), ct)).ToActionResult();
+
+    [HttpGet("{id:guid}/activity")]
+    [ProducesResponseType(typeof(PagedResult<ProjectActivityDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PagedResult<ProjectActivityDto>>> Activity(
+        Guid id,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default
+    ) =>
+        (
+            await _sender.Send(
+                new ListProjectActivityQuery(id, new PaginationRequest(page, pageSize)),
+                ct
+            )
+        ).ToActionResult();
+
+    [HttpGet("{id:guid}/stats")]
+    [ProducesResponseType(typeof(ProjectStatsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectStatsDto>> Stats(Guid id, CancellationToken ct) =>
+        (await _sender.Send(new GetProjectStatsQuery(id), ct)).ToActionResult();
+
     // Request payloads kept local to controller; they map 1:1 to commands.
     public sealed record CreateProjectRequest(
         string Key,
@@ -153,4 +229,6 @@ public sealed class ProjectsController : ControllerBase
     public sealed record ChangeStatusRequest(ProjectStatus Status);
 
     public sealed record AddMemberRequest(Guid UserId, ProjectMemberRole Role);
+
+    public sealed record UpdateMemberRequest(ProjectMemberRole Role);
 }
