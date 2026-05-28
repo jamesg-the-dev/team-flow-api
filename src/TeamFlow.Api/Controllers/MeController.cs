@@ -30,8 +30,9 @@ public sealed class MeController : ControllerBase
     /// <summary>Lists every workspace the current user belongs to.</summary>
     [HttpGet("workspaces")]
     [ProducesResponseType(typeof(IReadOnlyList<MyWorkspaceDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<MyWorkspaceDto>>> Workspaces(CancellationToken ct) =>
-        (await _sender.Send(new ListMyWorkspacesQuery(), ct)).ToActionResult();
+    public async Task<ActionResult<IReadOnlyList<MyWorkspaceDto>>> Workspaces(
+        CancellationToken ct
+    ) => (await _sender.Send(new ListMyWorkspacesQuery(), ct)).ToActionResult();
 
     /// <summary>
     /// Returns the caller's notification-preference rows. When <paramref name="workspaceId"/>
@@ -39,13 +40,12 @@ public sealed class MeController : ControllerBase
     /// </summary>
     [HttpGet("notification-preferences")]
     [ProducesResponseType(
-        typeof(IReadOnlyList<NotificationPreferenceDto>),
+        typeof(IReadOnlyList<MyNotificationPreferenceDto>),
         StatusCodes.Status200OK
     )]
-    public async Task<ActionResult<IReadOnlyList<NotificationPreferenceDto>>> NotificationPreferences(
-        [FromQuery] Guid? workspaceId,
-        CancellationToken ct
-    ) =>
+    public async Task<
+        ActionResult<IReadOnlyList<MyNotificationPreferenceDto>>
+    > NotificationPreferences([FromQuery] Guid? workspaceId, CancellationToken ct) =>
         (
             await _sender.Send(new GetMyNotificationPreferencesQuery(workspaceId), ct)
         ).ToActionResult();

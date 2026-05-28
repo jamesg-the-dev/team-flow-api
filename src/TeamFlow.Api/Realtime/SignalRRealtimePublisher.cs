@@ -38,9 +38,7 @@ internal sealed class SignalRRealtimePublisher : IRealtimePublisher
                 if (group is null)
                     continue;
 
-                await _hub
-                    .Clients.Group(group)
-                    .Event(evt.EventName, evt.Payload);
+                await _hub.Clients.Group(group).Event(evt.EventName, evt.Payload);
             }
             catch (Exception ex)
             {

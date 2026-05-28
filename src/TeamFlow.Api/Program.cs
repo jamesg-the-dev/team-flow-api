@@ -15,6 +15,7 @@ builder
     .AddSupabaseAuth(builder.Configuration);
 
 builder.Services.AddSignalR();
+
 // Replace the no-op publisher registered by AddApplication with the SignalR-backed one.
 builder.Services.AddSingleton<IRealtimePublisher, SignalRRealtimePublisher>();
 
@@ -65,14 +66,13 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(o =>
     o.AddDefaultPolicy(p =>
-        p.WithOrigins(
-                builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                    ?? Array.Empty<string>()
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-    )
+    {
+        var allowedOrigins =
+            builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? Array.Empty<string>();
+
+        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    })
 );
 
 builder
@@ -103,4 +103,3 @@ app.MapHub<RealtimeHub>(RealtimeHub.Path);
 app.MapHealthChecks("/health");
 
 app.Run();
-

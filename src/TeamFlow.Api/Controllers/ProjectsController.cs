@@ -153,7 +153,7 @@ public sealed class ProjectsController : ControllerBase
     public async Task<ActionResult> UpdateMember(
         Guid id,
         Guid userId,
-        [FromBody] UpdateMemberRequest body,
+        [FromBody] UpdateProjectMemberRequest body,
         CancellationToken ct
     ) =>
         (
@@ -245,5 +245,5 @@ public sealed class ProjectsController : ControllerBase
 
     public sealed record AddMemberRequest(Guid UserId, ProjectMemberRole Role);
 
-    public sealed record UpdateMemberRequest(ProjectMemberRole Role);
+    public sealed record UpdateProjectMemberRequest(ProjectMemberRole Role);
 }

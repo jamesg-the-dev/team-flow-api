@@ -21,7 +21,7 @@ public sealed record MyWorkspaceDto(
     DateTimeOffset JoinedAt
 );
 
-public sealed record NotificationPreferenceDto(
+public sealed record MyNotificationPreferenceDto(
     Guid WorkspaceId,
     NotificationKind Kind,
     DeliveryChannel Channel,

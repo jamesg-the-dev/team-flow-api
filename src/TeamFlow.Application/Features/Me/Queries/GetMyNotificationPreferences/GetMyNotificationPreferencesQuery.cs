@@ -7,10 +7,10 @@ using TeamFlow.Domain.Notifications;
 namespace TeamFlow.Application.Features.Me.Queries.GetMyNotificationPreferences;
 
 public sealed record GetMyNotificationPreferencesQuery(Guid? WorkspaceId = null)
-    : IQuery<IReadOnlyList<NotificationPreferenceDto>>;
+    : IQuery<IReadOnlyList<MyNotificationPreferenceDto>>;
 
 internal sealed class GetMyNotificationPreferencesHandler
-    : IQueryHandler<GetMyNotificationPreferencesQuery, IReadOnlyList<NotificationPreferenceDto>>
+    : IQueryHandler<GetMyNotificationPreferencesQuery, IReadOnlyList<MyNotificationPreferenceDto>>
 {
     private readonly INotificationPreferenceRepository _repository;
     private readonly ICurrentUser _currentUser;
@@ -24,7 +24,7 @@ internal sealed class GetMyNotificationPreferencesHandler
         _currentUser = currentUser;
     }
 
-    public async Task<Result<IReadOnlyList<NotificationPreferenceDto>>> Handle(
+    public async Task<Result<IReadOnlyList<MyNotificationPreferenceDto>>> Handle(
         GetMyNotificationPreferencesQuery request,
         CancellationToken ct
     )
@@ -34,8 +34,8 @@ internal sealed class GetMyNotificationPreferencesHandler
             ? await _repository.ListForUserAsync(userId, ws, ct)
             : await _repository.ListForUserAsync(userId, ct);
 
-        IReadOnlyList<NotificationPreferenceDto> dtos = prefs
-            .Select(p => new NotificationPreferenceDto(p.WorkspaceId, p.Kind, p.Channel, p.Enabled))
+        IReadOnlyList<MyNotificationPreferenceDto> dtos = prefs
+            .Select(p => new MyNotificationPreferenceDto(p.WorkspaceId, p.Kind, p.Channel, p.Enabled))
             .ToList();
         return Result.Success(dtos);
     }

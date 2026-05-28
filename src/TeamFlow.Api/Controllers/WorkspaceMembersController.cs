@@ -36,7 +36,7 @@ public sealed class WorkspaceMembersController : ControllerBase
     public async Task<ActionResult> Update(
         Guid workspaceId,
         Guid userId,
-        [FromBody] UpdateMemberRequest body,
+        [FromBody] UpdateWorkspaceMemberRequest body,
         CancellationToken ct
     ) =>
         (
@@ -65,7 +65,7 @@ public sealed class WorkspaceMembersController : ControllerBase
             await _sender.Send(new RemoveWorkspaceMemberCommand(workspaceId, userId), ct)
         ).ToActionResult();
 
-    public sealed record UpdateMemberRequest(
+    public sealed record UpdateWorkspaceMemberRequest(
         WorkspaceRole? Role,
         string? Title,
         bool ClearTitle = false
