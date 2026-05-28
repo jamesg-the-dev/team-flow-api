@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Abstractions;
 using TeamFlow.Application.Features.Channels.Queries.ListMyChannels;
 using TeamFlow.Application.Features.Channels.Services;
+using TeamFlow.Application.Features.Dashboard.Queries.GetWorkspaceDashboard;
 using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
 using TeamFlow.Application.Features.Messages.Queries.GetMessage;
 using TeamFlow.Application.Features.Messages.Queries.ListChannelMessages;
@@ -11,12 +12,15 @@ using TeamFlow.Application.Features.Messages.Queries.ListChannelPins;
 using TeamFlow.Application.Features.Messages.Queries.ListThreadMessages;
 using TeamFlow.Application.Features.Notifications.Services;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
+using TeamFlow.Application.Features.Projects.Queries.GetProjectVelocity;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectMembers;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
+using TeamFlow.Application.Features.Search.Queries.SearchWorkspace;
 using TeamFlow.Application.Features.Tasks.Queries.GetProjectBoard;
 using TeamFlow.Application.Features.Tasks.Queries.GetTaskByNumber;
 using TeamFlow.Application.Features.Tasks.Queries.ListProjectTasks;
+using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceActivity;
 using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceInvites;
 using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceMembers;
 using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceTags;
@@ -104,6 +108,10 @@ public static class DependencyInjection
         services.AddScoped<IListThreadMessagesQueryService, ListThreadMessagesQueryService>();
         services.AddScoped<IListChannelPinsQueryService, ListChannelPinsQueryService>();
         services.AddScoped<IMessageReplyCountService, MessageReplyCountService>();
+        services.AddScoped<IListWorkspaceActivityQueryService, ListWorkspaceActivityQueryService>();
+        services.AddScoped<IGetWorkspaceDashboardQueryService, GetWorkspaceDashboardQueryService>();
+        services.AddScoped<IGetProjectVelocityQueryService, GetProjectVelocityQueryService>();
+        services.AddScoped<ISearchWorkspaceQueryService, SearchWorkspaceQueryService>();
 
         // Bulk operations
         services.AddScoped<IMessagePurger, Persistence.Services.MessagePurger>();

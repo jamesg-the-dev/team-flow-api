@@ -13,6 +13,7 @@ using TeamFlow.Application.Features.Projects.Commands.UpdateProjectMember;
 using TeamFlow.Application.Features.Projects.DTOs;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectById;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
+using TeamFlow.Application.Features.Projects.Queries.GetProjectVelocity;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectMembers;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
@@ -205,6 +206,20 @@ public sealed class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProjectStatsDto>> Stats(Guid id, CancellationToken ct) =>
         (await _sender.Send(new GetProjectStatsQuery(id), ct)).ToActionResult();
+
+    /// <summary>
+    /// Weekly created vs. completed task counts for the trailing <paramref name="weeks"/> ISO weeks
+    /// (Monday-anchored, UTC). Defaults to 12; clamped to a 52-week max.
+    /// </summary>
+    [HttpGet("{id:guid}/velocity")]
+    [ProducesResponseType(typeof(IReadOnlyList<VelocityPointDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<VelocityPointDto>>> Velocity(
+        Guid id,
+        [FromQuery] int weeks = 12,
+        CancellationToken ct = default
+    ) => (await _sender.Send(new GetProjectVelocityQuery(id, weeks), ct)).ToActionResult();
 
     // Request payloads kept local to controller; they map 1:1 to commands.
     public sealed record CreateProjectRequest(
