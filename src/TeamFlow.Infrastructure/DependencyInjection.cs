@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Abstractions;
+using TeamFlow.Application.Features.Channels.Queries.ListMyChannels;
+using TeamFlow.Application.Features.Channels.Services;
 using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
 using TeamFlow.Application.Features.Projects.Queries.GetProjectStats;
 using TeamFlow.Application.Features.Projects.Queries.ListProjectActivity;
@@ -92,6 +94,10 @@ public static class DependencyInjection
         services.AddScoped<IListWorkspaceMembersQueryService, ListWorkspaceMembersQueryService>();
         services.AddScoped<IListWorkspaceInvitesQueryService, ListWorkspaceInvitesQueryService>();
         services.AddScoped<IListWorkspaceTagsQueryService, ListWorkspaceTagsQueryService>();
+        services.AddScoped<IListMyChannelsQueryService, ListMyChannelsQueryService>();
+
+        // Bulk operations
+        services.AddScoped<IMessagePurger, Persistence.Services.MessagePurger>();
 
         return services;
     }

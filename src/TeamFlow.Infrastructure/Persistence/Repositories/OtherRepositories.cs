@@ -29,6 +29,31 @@ internal sealed class ChannelRepository : IChannelRepository
         CancellationToken ct = default
     ) => _ctx.Channels.AnyAsync(c => c.WorkspaceId == workspaceId && c.Name == name, ct);
 
+    public Task<bool> IsMemberAsync(
+        Guid channelId,
+        Guid userId,
+        CancellationToken ct = default
+    ) =>
+        _ctx.ChannelMembers.AsNoTracking()
+            .AnyAsync(m => m.ChannelId == channelId && m.UserId == userId, ct);
+
+    public Task<Channel?> FindDirectChannelAsync(
+        Guid workspaceId,
+        Guid userA,
+        Guid userB,
+        CancellationToken ct = default
+    ) =>
+        _ctx
+            .Channels.Include(c => c.Members)
+            .Where(c =>
+                c.WorkspaceId == workspaceId
+                && c.Type == TeamFlow.Domain.Enums.ChannelType.Direct
+                && c.Members.Count == 2
+                && c.Members.Any(m => m.UserId == userA)
+                && c.Members.Any(m => m.UserId == userB)
+            )
+            .FirstOrDefaultAsync(ct);
+
     public void Add(Channel channel) => _ctx.Channels.Add(channel);
 
     public void Remove(Channel channel) => _ctx.Channels.Remove(channel);

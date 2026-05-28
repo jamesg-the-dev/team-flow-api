@@ -86,6 +86,16 @@ public sealed class Channel : AggregateRoot
             ?? throw DomainException.Invariant("User is not a member of this channel.");
         m.MarkRead(at);
     }
+
+    /// <summary>Mute / unmute notifications for a member of this channel.</summary>
+    public void SetMute(Guid userId, bool muted)
+    {
+        var m =
+            _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw DomainException.Invariant("User is not a member of this channel.");
+        if (muted) m.Mute();
+        else m.Unmute();
+    }
 }
 
 public sealed class ChannelMember
@@ -121,6 +131,21 @@ public interface IChannelRepository : IRepository<Channel>
 {
     Task<Channel?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<bool> NameExistsAsync(Guid workspaceId, string name, CancellationToken ct = default);
+
+    /// <summary>Cheap channel-membership check used by handlers for authorization.</summary>
+    Task<bool> IsMemberAsync(Guid channelId, Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Finds an existing 1-1 direct-message channel between exactly the two users in a workspace,
+    /// or <c>null</c> if none exists. Used to make DM creation idempotent.
+    /// </summary>
+    Task<Channel?> FindDirectChannelAsync(
+        Guid workspaceId,
+        Guid userA,
+        Guid userB,
+        CancellationToken ct = default
+    );
+
     void Add(Channel channel);
     void Remove(Channel channel);
 }
