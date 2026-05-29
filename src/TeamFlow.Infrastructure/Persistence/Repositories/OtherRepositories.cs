@@ -3,10 +3,29 @@ using TeamFlow.Domain.Activity;
 using TeamFlow.Domain.Attachments;
 using TeamFlow.Domain.Discussions;
 using TeamFlow.Domain.Enums;
+using TeamFlow.Domain.Identity;
 using TeamFlow.Domain.Notifications;
 using TeamFlow.Domain.SeedWork;
 
 namespace TeamFlow.Infrastructure.Persistence.Repositories;
+
+internal sealed class ProfileRepository : IProfileRepository
+{
+    private readonly TeamFlowDbContext _ctx;
+
+    public ProfileRepository(TeamFlowDbContext ctx, IUnitOfWork uow)
+    {
+        _ctx = ctx;
+        UnitOfWork = uow;
+    }
+
+    public IUnitOfWork UnitOfWork { get; }
+
+    public Task<Profile?> GetByUserIdAsync(Guid userId, CancellationToken ct = default) =>
+        _ctx.Profiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+
+    public void Add(Profile profile) => _ctx.Profiles.Add(profile);
+}
 
 internal sealed class ChannelRepository : IChannelRepository
 {

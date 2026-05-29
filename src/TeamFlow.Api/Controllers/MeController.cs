@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamFlow.Api.Middleware;
 using TeamFlow.Application.Features.Me.Commands.UpdateMyNotificationPreferences;
+using TeamFlow.Application.Features.Me.Commands.UpsertMyProfile;
 using TeamFlow.Application.Features.Me.DTOs;
 using TeamFlow.Application.Features.Me.Queries.GetMe;
 using TeamFlow.Application.Features.Me.Queries.GetMyNotificationPreferences;
+using TeamFlow.Application.Features.Me.Queries.GetMyProfile;
 using TeamFlow.Application.Features.Me.Queries.ListMyWorkspaces;
 
 namespace TeamFlow.Api.Controllers;
@@ -26,6 +28,24 @@ public sealed class MeController : ControllerBase
     [ProducesResponseType(typeof(MeDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<MeDto>> Get(CancellationToken ct) =>
         (await _sender.Send(new GetMeQuery(), ct)).ToActionResult();
+
+    /// <summary>
+    /// Returns the caller's TeamFlow profile. Responds with <c>200</c> and a <c>null</c> body
+    /// when no profile has been created yet — clients should follow up with <c>PUT /me/profile</c>.
+    /// </summary>
+    [HttpGet("profile")]
+    [ProducesResponseType(typeof(ProfileDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProfileDto?>> GetProfile(CancellationToken ct) =>
+        (await _sender.Send(new GetMyProfileQuery(), ct)).ToActionResult();
+
+    /// <summary>Creates the caller's profile if missing, or updates it if it already exists.</summary>
+    [HttpPut("profile")]
+    [ProducesResponseType(typeof(ProfileDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ProfileDto>> UpsertProfile(
+        [FromBody] UpsertMyProfileCommand body,
+        CancellationToken ct
+    ) => (await _sender.Send(body, ct)).ToActionResult();
 
     /// <summary>Lists every workspace the current user belongs to.</summary>
     [HttpGet("workspaces")]

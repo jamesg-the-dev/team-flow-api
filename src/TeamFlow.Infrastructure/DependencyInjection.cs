@@ -27,6 +27,7 @@ using TeamFlow.Application.Features.Workspaces.Queries.ListWorkspaceTags;
 using TeamFlow.Domain.Activity;
 using TeamFlow.Domain.Attachments;
 using TeamFlow.Domain.Discussions;
+using TeamFlow.Domain.Identity;
 using TeamFlow.Domain.Notifications;
 using TeamFlow.Domain.Projects;
 using TeamFlow.Domain.SeedWork;
@@ -100,6 +101,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
         services.AddScoped<IActivityEventRepository, ActivityEventRepository>();
+        services.AddScoped<IProfileRepository, ProfileRepository>();
 
         // Read-side query services (CQRS Q-side)
         services.AddScoped<IListProjectsQueryService, ListProjectsQueryService>();

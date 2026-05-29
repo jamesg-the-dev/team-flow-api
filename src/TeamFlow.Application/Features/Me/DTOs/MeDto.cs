@@ -1,4 +1,5 @@
 using TeamFlow.Domain.Enums;
+using TeamFlow.Domain.Identity;
 
 namespace TeamFlow.Application.Features.Me.DTOs;
 
@@ -10,6 +11,35 @@ public sealed record MeDto(
     string? FullName,
     string? AvatarUrl
 );
+
+/// <summary>Projection of a row in the <c>profiles</c> table.</summary>
+public sealed record ProfileDto(
+    Guid Id,
+    Guid UserId,
+    string FullName,
+    string? DisplayName,
+    string? AvatarPath,
+    string? Bio,
+    string Timezone,
+    string Locale,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt
+)
+{
+    public static ProfileDto From(Profile p) =>
+        new(
+            p.Id,
+            p.UserId,
+            p.FullName,
+            p.DisplayName,
+            p.AvatarPath,
+            p.Bio,
+            p.Timezone,
+            p.Locale,
+            p.CreatedAt,
+            p.UpdatedAt
+        );
+}
 
 /// <summary>One row of <c>GET /me/workspaces</c>.</summary>
 public sealed record MyWorkspaceDto(
