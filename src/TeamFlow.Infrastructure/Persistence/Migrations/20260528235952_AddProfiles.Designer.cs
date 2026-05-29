@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -14,9 +15,11 @@ using TeamFlow.Infrastructure.Persistence;
 namespace TeamFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamFlowDbContext))]
-    partial class TeamFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528235952_AddProfiles")]
+    partial class AddProfiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

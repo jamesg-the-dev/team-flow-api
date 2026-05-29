@@ -58,6 +58,25 @@ CREATE TABLE users (
 );
 CREATE INDEX ix_users_full_name_trgm ON users USING gin (full_name gin_trgm_ops);
 
+-- ---------- profiles --------------------------------------------------------
+-- App-level profile linked to a Supabase auth user. `user_id` references
+-- `auth.users(id)` (managed by Supabase) and is unique per profile.
+CREATE TABLE profiles (
+    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id       UUID        NOT NULL UNIQUE,    -- Supabase auth.users.id (JWT `sub`)
+    full_name     TEXT        NOT NULL,
+    display_name  TEXT,
+    avatar_path   TEXT,                            -- storage path or absolute URL
+    bio           TEXT,
+    timezone      TEXT        NOT NULL DEFAULT 'UTC',
+    locale        TEXT        NOT NULL DEFAULT 'en-US',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by    UUID,
+    updated_by    UUID
+);
+CREATE INDEX ix_profiles_full_name_trgm ON profiles USING gin (full_name gin_trgm_ops);
+
 -- ---------- workspaces (tenants) --------------------------------------------
 CREATE TABLE workspaces (
     id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),

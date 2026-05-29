@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TeamFlow.Domain.Activity;
 using TeamFlow.Domain.Attachments;
 using TeamFlow.Domain.Discussions;
+using TeamFlow.Domain.Identity;
 using TeamFlow.Domain.Notifications;
 using TeamFlow.Domain.Projects;
 using TeamFlow.Domain.SeedWork;
@@ -14,6 +15,9 @@ public sealed class TeamFlowDbContext : DbContext
 {
     public TeamFlowDbContext(DbContextOptions<TeamFlowDbContext> options)
         : base(options) { }
+
+    // Identity
+    public DbSet<Profile> Profiles => Set<Profile>();
 
     // Workspaces
     public DbSet<Workspace> Workspaces => Set<Workspace>();
