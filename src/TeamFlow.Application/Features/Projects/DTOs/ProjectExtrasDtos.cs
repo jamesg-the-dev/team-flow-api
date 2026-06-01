@@ -6,6 +6,7 @@ namespace TeamFlow.Application.Features.Projects.DTOs;
 public sealed record ProjectMemberDto(
     Guid UserId,
     ProjectMemberRole Role,
+    string FullName,
     DateTimeOffset AddedAt
 );
 

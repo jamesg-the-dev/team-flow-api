@@ -26,5 +26,6 @@ public sealed record ProjectSummaryDto(
     ProjectStatus Status,
     PriorityLevel Priority,
     DateOnly? DueDate,
-    int MemberCount
+    int MemberCount,
+    IReadOnlyList<string> MemberNames
 );

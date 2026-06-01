@@ -54,7 +54,15 @@ internal sealed class ListProjectsQueryService : IListProjectsQueryService
                 p.Status,
                 p.Priority,
                 p.DueDate,
-                p.Members.Count
+                p.Members.Count,
+                p.Members
+                    .OrderBy(m => m.AddedAt)
+                    .Select(m =>
+                        _ctx.Profiles
+                            .Where(pr => pr.UserId == m.UserId)
+                            .Select(pr => pr.FullName)
+                            .FirstOrDefault() ?? string.Empty)
+                    .ToList()
             ))
             .ToListAsync(ct);
 

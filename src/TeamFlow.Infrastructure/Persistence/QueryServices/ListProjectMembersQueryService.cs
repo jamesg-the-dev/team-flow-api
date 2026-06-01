@@ -18,6 +18,10 @@ internal sealed class ListProjectMembersQueryService : IListProjectMembersQueryS
             .ProjectMembers.AsNoTracking()
             .Where(m => m.ProjectId == projectId)
             .OrderBy(m => m.AddedAt)
-            .Select(m => new ProjectMemberDto(m.UserId, m.Role, m.AddedAt))
+            .Select(m => new ProjectMemberDto(
+                m.UserId,
+                m.Role,
+                _ctx.Profiles.Where(p => p.UserId == m.UserId).Select(p => p.FullName).FirstOrDefault() ?? string.Empty,
+                m.AddedAt))
             .ToListAsync(ct);
 }
