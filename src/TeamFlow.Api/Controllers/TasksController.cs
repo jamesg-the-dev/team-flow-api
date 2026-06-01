@@ -91,7 +91,8 @@ public sealed class TasksController : ControllerBase
             body.Priority,
             body.AssigneeId,
             body.EstimateHours,
-            body.DueDate
+            body.DueDate,
+            body.Column
         );
         var result = await _sender.Send(cmd, ct);
         return result.IsSuccess
@@ -151,7 +152,8 @@ public sealed class TasksController : ControllerBase
         PriorityLevel Priority,
         Guid? AssigneeId,
         decimal? EstimateHours,
-        DateOnly? DueDate
+        DateOnly? DueDate,
+        TaskColumn Column
     );
 
     public sealed record MoveTaskRequest(

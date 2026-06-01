@@ -49,7 +49,8 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
         PriorityLevel priority = PriorityLevel.Medium,
         Guid? assigneeId = null,
         decimal? estimateHours = null,
-        DateOnly? dueDate = null
+        DateOnly? dueDate = null,
+        TaskColumn column = TaskColumn.Backlog
     )
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -75,6 +76,7 @@ public sealed class TaskItem : AuditableAggregateRoot, ISoftDeletable
             ReporterId = reporterId,
             EstimateHours = estimateHours,
             DueDate = dueDate,
+            Column = column,
         };
         task.Raise(new TaskCreated(task.Id, projectId, number, reporterId));
         return task;

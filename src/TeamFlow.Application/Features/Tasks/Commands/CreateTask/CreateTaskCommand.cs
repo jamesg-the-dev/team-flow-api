@@ -16,7 +16,8 @@ public sealed record CreateTaskCommand(
     PriorityLevel Priority,
     Guid? AssigneeId,
     decimal? EstimateHours,
-    DateOnly? DueDate
+    DateOnly? DueDate,
+    TaskColumn Column
 ) : ICommand<TaskDto>;
 
 public sealed class CreateTaskValidator : AbstractValidator<CreateTaskCommand>
@@ -28,6 +29,7 @@ public sealed class CreateTaskValidator : AbstractValidator<CreateTaskCommand>
         RuleFor(x => x.Description).MaximumLength(8000);
         RuleFor(x => x.EstimateHours).GreaterThanOrEqualTo(0).When(x => x.EstimateHours.HasValue);
         RuleFor(x => x.Priority).IsInEnum();
+        RuleFor(x => x.Column).IsInEnum();
     }
 }
 
@@ -54,10 +56,11 @@ internal sealed class CreateTaskHandler : ICommandHandler<CreateTaskCommand, Tas
         if (project is null)
             return Error.NotFound($"Project '{request.ProjectId}' not found.");
 
-        // Append to bottom of the Backlog column.
+
+        // Append to bottom of the specified column.
         var (_, max) = await _tasks.GetColumnPositionBoundsAsync(
             project.Id,
-            TaskColumn.Backlog,
+            request.Column,
             ct
         );
         var newPosition = (max ?? 0m) + 1024m;
@@ -73,7 +76,8 @@ internal sealed class CreateTaskHandler : ICommandHandler<CreateTaskCommand, Tas
             priority: request.Priority,
             assigneeId: request.AssigneeId,
             estimateHours: request.EstimateHours,
-            dueDate: request.DueDate
+            dueDate: request.DueDate,
+            column: request.Column
         );
 
         _tasks.Add(task);
