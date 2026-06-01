@@ -9,6 +9,7 @@ namespace TeamFlow.Application.Features.Projects.Queries.ListProjects;
 public sealed record ListProjectsQuery(
     Guid WorkspaceId,
     ProjectStatus? Status,
+    bool ActiveOnly,
     string? Search,
     PaginationRequest Pagination
 ) : IQuery<PagedResult<ProjectSummaryDto>>;

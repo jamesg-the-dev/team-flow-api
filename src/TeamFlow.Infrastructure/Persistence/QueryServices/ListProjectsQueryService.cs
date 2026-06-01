@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TeamFlow.Application.Common.Pagination;
 using TeamFlow.Application.Features.Projects.DTOs;
 using TeamFlow.Application.Features.Projects.Queries.ListProjects;
+using TeamFlow.Domain.Enums;
 
 namespace TeamFlow.Infrastructure.Persistence.QueryServices;
 
@@ -17,6 +18,15 @@ internal sealed class ListProjectsQueryService : IListProjectsQueryService
     )
     {
         var query = _ctx.Projects.AsNoTracking().Where(p => p.WorkspaceId == q.WorkspaceId);
+
+        if (q.ActiveOnly)
+        {
+            query = query.Where(p =>
+                p.Status != ProjectStatus.Completed
+                && p.Status != ProjectStatus.OnHold
+                && p.Status != ProjectStatus.Archived
+            );
+        }
 
         if (q.Status is { } status)
             query = query.Where(p => p.Status == status);

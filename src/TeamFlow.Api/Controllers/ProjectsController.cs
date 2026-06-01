@@ -37,6 +37,7 @@ public sealed class ProjectsController : ControllerBase
         Guid workspaceId,
         [FromQuery] ProjectStatus? status,
         [FromQuery] string? search,
+        [FromQuery] bool activeOnly = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
         CancellationToken ct = default
@@ -46,6 +47,7 @@ public sealed class ProjectsController : ControllerBase
             new ListProjectsQuery(
                 workspaceId,
                 status,
+                activeOnly,
                 search,
                 new PaginationRequest(page, pageSize)
             ),
