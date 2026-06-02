@@ -26,8 +26,7 @@ public sealed class WorkspaceMembersController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<WorkspaceMemberDto>>> List(
         Guid workspaceId,
         CancellationToken ct
-    ) =>
-        (await _sender.Send(new ListWorkspaceMembersQuery(workspaceId), ct)).ToActionResult();
+    ) => (await _sender.Send(new ListWorkspaceMembersQuery(workspaceId), ct)).ToActionResult();
 
     [HttpPatch("{userId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -56,11 +55,7 @@ public sealed class WorkspaceMembersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Remove(
-        Guid workspaceId,
-        Guid userId,
-        CancellationToken ct
-    ) =>
+    public async Task<ActionResult> Remove(Guid workspaceId, Guid userId, CancellationToken ct) =>
         (
             await _sender.Send(new RemoveWorkspaceMemberCommand(workspaceId, userId), ct)
         ).ToActionResult();

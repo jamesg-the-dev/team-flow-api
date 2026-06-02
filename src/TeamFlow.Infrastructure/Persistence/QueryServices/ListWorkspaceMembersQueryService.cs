@@ -23,7 +23,10 @@ internal sealed class ListWorkspaceMembersQueryService : IListWorkspaceMembersQu
                 m.Role,
                 m.Title,
                 m.JoinedAt,
-                m.InvitedBy
+                m.InvitedBy,
+                _ctx.Profiles.Where(p => p.UserId == m.UserId)
+                    .Select(p => p.FullName)
+                    .FirstOrDefault()
             ))
             .ToListAsync(ct);
 }

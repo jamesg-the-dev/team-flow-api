@@ -7,7 +7,8 @@ public sealed record WorkspaceMemberDto(
     WorkspaceRole Role,
     string? Title,
     DateTimeOffset JoinedAt,
-    Guid? InvitedBy
+    Guid? InvitedBy,
+    string? FullName
 );
 
 public sealed record WorkspaceInviteDto(
