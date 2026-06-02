@@ -21,13 +21,9 @@ namespace TeamFlow.Api.Controllers;
 [ApiController]
 [Authorize(Policy = "authenticated")]
 [Produces("application/json")]
-public sealed class ChannelsController : ControllerBase
+public sealed class ChannelsController(ISender sender) : ControllerBase
 {
-    private readonly ISender _sender;
-
-    public ChannelsController(ISender sender) => _sender = sender;
-
-    // ---- workspace-scoped ----------------------------------------------------------------
+    private readonly ISender _sender = sender;
 
     /// <summary>Lists every channel the current user belongs to in a workspace, with unread counts.</summary>
     [HttpGet("api/v1/workspaces/{workspaceId:guid}/channels")]
@@ -74,8 +70,6 @@ public sealed class ChannelsController : ControllerBase
         var result = await _sender.Send(new CreateOrGetDmCommand(workspaceId, body.UserId), ct);
         return result.ToActionResult();
     }
-
-    // ---- channel-scoped ------------------------------------------------------------------
 
     [HttpGet("api/v1/channels/{id:guid}")]
     [ProducesResponseType(typeof(ChannelDto), StatusCodes.Status200OK)]

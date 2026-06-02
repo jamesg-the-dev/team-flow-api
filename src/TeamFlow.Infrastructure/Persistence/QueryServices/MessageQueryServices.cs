@@ -30,29 +30,29 @@ internal static class MessageQueryHelpers
             .ToListAsync(ct);
 
         if (messages.Count == 0)
-            return Array.Empty<MessageDto>();
+            return [];
 
-        var rootIds = messages.Where(m => m.ParentId is null).Select(m => m.Id).ToArray();
-        var replyCounts = rootIds.Length == 0
-            ? new Dictionary<Guid, int>()
-            : await ctx
-                .Messages.AsNoTracking()
-                .Where(m => m.ParentId != null && rootIds.Contains(m.ParentId!.Value))
-                .GroupBy(m => m.ParentId!.Value)
-                .Select(g => new { ParentId = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.ParentId, x => x.Count, ct);
+        var rootIds = messages.Where(m => m.ParentId is null).Select(m => m.Id).ToList();
+        var replyCounts =
+            rootIds.Count == 0
+                ? new Dictionary<Guid, int>()
+                : (
+                    await ctx
+                        .Messages.AsNoTracking()
+                        .Where(m => m.ParentId != null && rootIds.Contains(m.ParentId!.Value))
+                        .GroupBy(m => m.ParentId)
+                        .Select(g => new { ParentId = g.Key, Count = g.Count() })
+                        .ToListAsync(ct)
+                ).ToDictionary(x => x.ParentId!.Value, x => x.Count);
 
-        return messages
-            .Select(m => m.ToDto(replyCounts.GetValueOrDefault(m.Id)))
-            .ToList();
+        return messages.Select(m => m.ToDto(replyCounts.GetValueOrDefault(m.Id))).ToList();
     }
 }
 
-internal sealed class ListChannelMessagesQueryService : IListChannelMessagesQueryService
+internal sealed class ListChannelMessagesQueryService(TeamFlowDbContext ctx)
+    : IListChannelMessagesQueryService
 {
-    private readonly TeamFlowDbContext _ctx;
-
-    public ListChannelMessagesQueryService(TeamFlowDbContext ctx) => _ctx = ctx;
+    private readonly TeamFlowDbContext _ctx = ctx;
 
     public async Task<IReadOnlyList<MessageDto>> ExecuteAsync(
         Guid channelId,
@@ -85,7 +85,6 @@ internal sealed class ListThreadMessagesQueryService : IListThreadMessagesQueryS
         CancellationToken ct
     )
     {
-        // Root + replies, chronologically.
         var q = _ctx
             .Messages.Where(m => m.Id == parentMessageId || m.ParentId == parentMessageId)
             .OrderBy(m => m.CreatedAt);
@@ -94,16 +93,12 @@ internal sealed class ListThreadMessagesQueryService : IListThreadMessagesQueryS
     }
 }
 
-internal sealed class ListChannelPinsQueryService : IListChannelPinsQueryService
+internal sealed class ListChannelPinsQueryService(TeamFlowDbContext ctx)
+    : IListChannelPinsQueryService
 {
-    private readonly TeamFlowDbContext _ctx;
+    private readonly TeamFlowDbContext _ctx = ctx;
 
-    public ListChannelPinsQueryService(TeamFlowDbContext ctx) => _ctx = ctx;
-
-    public async Task<IReadOnlyList<MessageDto>> ExecuteAsync(
-        Guid channelId,
-        CancellationToken ct
-    )
+    public async Task<IReadOnlyList<MessageDto>> ExecuteAsync(Guid channelId, CancellationToken ct)
     {
         var q = _ctx
             .Messages.Where(m => m.ChannelId == channelId && m.IsPinned)
@@ -113,11 +108,9 @@ internal sealed class ListChannelPinsQueryService : IListChannelPinsQueryService
     }
 }
 
-internal sealed class MessageReplyCountService : IMessageReplyCountService
+internal sealed class MessageReplyCountService(TeamFlowDbContext ctx) : IMessageReplyCountService
 {
-    private readonly TeamFlowDbContext _ctx;
-
-    public MessageReplyCountService(TeamFlowDbContext ctx) => _ctx = ctx;
+    private readonly TeamFlowDbContext _ctx = ctx;
 
     public Task<int> CountAsync(Guid parentId, CancellationToken ct) =>
         _ctx.Messages.AsNoTracking().CountAsync(m => m.ParentId == parentId, ct);

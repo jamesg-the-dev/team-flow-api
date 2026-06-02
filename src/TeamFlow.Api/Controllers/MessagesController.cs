@@ -18,11 +18,9 @@ namespace TeamFlow.Api.Controllers;
 [ApiController]
 [Authorize(Policy = "authenticated")]
 [Produces("application/json")]
-public sealed class MessagesController : ControllerBase
+public sealed class MessagesController(ISender sender) : ControllerBase
 {
-    private readonly ISender _sender;
-
-    public MessagesController(ISender sender) => _sender = sender;
+    private readonly ISender _sender = sender;
 
     // ---- channel-scoped collections --------------------------------------------------------
 
@@ -37,10 +35,7 @@ public sealed class MessagesController : ControllerBase
         CancellationToken ct = default
     )
     {
-        var result = await _sender.Send(
-            new ListChannelMessagesQuery(channelId, before, take),
-            ct
-        );
+        var result = await _sender.Send(new ListChannelMessagesQuery(channelId, before, take), ct);
         return result.ToActionResult();
     }
 
@@ -114,10 +109,7 @@ public sealed class MessagesController : ControllerBase
     [HttpGet("api/v1/messages/{id:guid}/thread")]
     [ProducesResponseType(typeof(IReadOnlyList<MessageDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<MessageDto>>> Thread(
-        Guid id,
-        CancellationToken ct
-    )
+    public async Task<ActionResult<IReadOnlyList<MessageDto>>> Thread(Guid id, CancellationToken ct)
     {
         var result = await _sender.Send(new ListThreadMessagesQuery(id), ct);
         return result.ToActionResult();
@@ -173,7 +165,11 @@ public sealed class MessagesController : ControllerBase
     }
 }
 
-public sealed record PostMessageRequest(string Body, Guid? ParentMessageId, IReadOnlyList<Guid>? Mentions);
+public sealed record PostMessageRequest(
+    string Body,
+    Guid? ParentMessageId,
+    IReadOnlyList<Guid>? Mentions
+);
 
 public sealed record EditMessageRequest(string Body);
 

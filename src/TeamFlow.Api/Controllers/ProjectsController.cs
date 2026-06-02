@@ -159,24 +159,15 @@ public sealed class ProjectsController : ControllerBase
         CancellationToken ct
     ) =>
         (
-            await _sender.Send(
-                new UpdateProjectMemberCommand(id, userId, body.Role),
-                ct
-            )
+            await _sender.Send(new UpdateProjectMemberCommand(id, userId, body.Role), ct)
         ).ToActionResult();
 
     [HttpDelete("{id:guid}/members/{userId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> RemoveMember(
-        Guid id,
-        Guid userId,
-        CancellationToken ct
-    ) =>
-        (
-            await _sender.Send(new RemoveProjectMemberCommand(id, userId), ct)
-        ).ToActionResult();
+    public async Task<ActionResult> RemoveMember(Guid id, Guid userId, CancellationToken ct) =>
+        (await _sender.Send(new RemoveProjectMemberCommand(id, userId), ct)).ToActionResult();
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
