@@ -1,0 +1,17 @@
+name: Render Keep-Alive
+
+on:
+  schedule:
+    # This runs every 14 minutes. 
+    # Render's free tier sleeps after 15 mins of inactivity.
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allows you to run it manually from the GitHub UI to test it
+
+jobs:
+  ping-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up backend
+        run: |
+          curl -I -s https://team-flow-api-i18b.onrender.com/health
+          echo "Server pinged at $(date)"
