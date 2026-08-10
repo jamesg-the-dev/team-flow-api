@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TeamFlow.Infrastructure.Persistence;
 
 namespace TeamFlow.Api.Controllers;
@@ -10,7 +11,7 @@ public class AwakenController(TeamFlowDbContext db) : ControllerBase
     [Route("wakeup")]
     public async Task<IActionResult> Get()
     {
-        await db.Database.CanConnectAsync();
+        await db.Profiles.FirstOrDefaultAsync();
         return Ok(new { awake = true });
     }
 }
